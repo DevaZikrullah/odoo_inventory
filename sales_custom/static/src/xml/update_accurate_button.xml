@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+   <t t-extend="ListView.buttons" t-name="button_near_in_create.buttons">
+       <t t-jquery="button.o_list_button_add" t-operation="after">
+           <button type="button" class="btn btn-primary open_wizard_action" confirm="update data dari Accurate">
+               Update Data Accurate
+           </button>
+       </t>
+   </t>
+</templates>
