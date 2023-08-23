@@ -328,7 +328,7 @@ class SaleOrderController(http.Controller):
                             item = {
                                 'product_id': product_id.id,
                                 'name': value['detailName'],
-                                'product_qty': value['quantity'],
+                                'product_uom_qty': value['quantity'],
                                 'price_unit': value['unitPrice'],
                                 'order_id': purchase_create.id,
                                 'price_tax': 0
