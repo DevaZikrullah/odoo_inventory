@@ -178,7 +178,7 @@ class SaleOrderController(http.Controller):
         product_template_obj.sudo().create(records_to_create)
 
     def update_avail_stock(self, item_no, qty, uom):
-        uom = request.env['uom_uom'].search([('name', '=', uom)])
+        uom = request.env['uom.uom'].search([('name', '=', uom)])
         id_product = request.env['product.template'].search([('item_accurate_number', '=', item_no)])
         id_product.write({
             'type': 'product',
