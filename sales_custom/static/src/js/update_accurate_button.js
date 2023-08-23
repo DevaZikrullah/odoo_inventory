@@ -5,7 +5,7 @@ odoo.define('button_near_in_create.tree_button', function (require) {
     var viewRegistry = require('web.view_registry');
     var core = require('web.core');
     var Dialog = require('web.Dialog');
-
+    var framework = require('web.framework');
     var _t = core._t; // Define the _t function in the current context
 
     var TreeButton = ListController.extend({
@@ -15,6 +15,9 @@ odoo.define('button_near_in_create.tree_button', function (require) {
         }),
         _OpenWizard: function () {
             var self = this;
+
+            //To add spinner
+
 
             // Display a confirmation dialog before updating the data
             Dialog.confirm(this, _t("Are you sure you want to update the data?"), {
@@ -31,6 +34,9 @@ odoo.define('button_near_in_create.tree_button', function (require) {
                             var itemsPerPage = 10; // Number of items to display per page
                             var currentPage = 1;
                             var totalItems = result.data.item.length;
+                            framework.blockUI();
+                            //To remove spinner
+                            framework.unblockUI();
 
                             // Show the custom modal dialog
                             var modal = document.createElement('div');
