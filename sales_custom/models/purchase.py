@@ -2,10 +2,9 @@ from odoo import models, api, http, fields
 from odoo.http import request
 
 
-class SaleOrder(models.Model):
-    _inherit = 'sale.order'
+class PurchaseOrder(models.Model):
+    _inherit = 'purchase.order'
 
     item_accurate_id = fields.Char('Accurate ID')
     accurate_status = fields.Char()
-    customer = fields.Char()
-    no_accurate = fields.Char()
+    vendor_accurate = fields.Char()

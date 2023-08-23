@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
    <data>
-       <record id="sale_order_inherited_tree_view" model="ir.ui.view">
-           <field name="name">sale.order.view.tree.inherit</field>
-           <field name="model">sale.order</field>
-           <field name="inherit_id" ref="sale.view_quotation_tree"/>
+       <record id="stock_inherited_kanban_view" model="ir.ui.view">
+           <field name="name">stock.picking.view.tree.inherit</field>
+           <field name="model">stock.picking</field>
+           <field name="inherit_id" ref="stock.vpicktree"/>
            <field name="arch" type="xml">
                <xpath expr="//tree" position="attributes">
-                   <header>
-                        <button name="test_method" type="object"
-                            string="Test Method" class="oe_highlight"
-                            attrs="{'always_visible': True}"/>
-                    </header>
                    <attribute name="js_class">button_in_tree</attribute>
                </xpath>
            </field>
