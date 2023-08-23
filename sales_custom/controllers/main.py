@@ -101,7 +101,8 @@ class SaleOrderController(http.Controller):
                             self.create_product_templates(data_to_create)
                             data_to_create = []
                     else:
-                        self.update_avail_stock(item['no'], item['quantity'],item['vendorUnit']['name'])
+                        if item['vendorUnit'] != None:
+                            self.update_avail_stock(item['no'], item['quantity'], item['vendorUnit']['name'])
 
             if data_to_create:
                 self.create_product_templates(data_to_create)
