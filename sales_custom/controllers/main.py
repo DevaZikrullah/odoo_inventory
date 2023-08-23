@@ -15,11 +15,11 @@ class SaleOrderController(http.Controller):
         access_token = self.get_access_token()['access_token']
         session = self.open_db_accurate(access_token)['session']
         # product = self.get_product_accurate(access_token, session)
-        self.get_po_accurate(access_token, session)
+        so = self.get_so_accurate(access_token, session)
 
         return {
             'status': 200,
-            'data': 'product'
+            'data': 'mantap'
         }
 
     def get_access_token(self):
@@ -267,75 +267,78 @@ class SaleOrderController(http.Controller):
 
                         _logger.info("Background function finished")
 
-    # def get_so_accurate(self, access_token, session):
-    #
-    #     product = request.env['product.template']
-    #     purchase = request.env['purchase.order']
-    #     purchase_order = request.env['purchase.order.line']
-    #     url = "https://zeus.accurate.id/accurate/api/sales-invoice/list.do?sp.pageSize=100"
-    #
-    #     headers = {
-    #         'Authorization': f'Bearer {access_token}',
-    #         'X-Session-ID': session
-    #     }
-    #
-    #     response = requests.get(url, headers=headers)
-    #     id_list = []
-    #     if response.status_code == 200:
-    #         data = response.json()
-    #         page_count = data['sp']['pageCount']
-    #         for page in range(1, 2 + 1):
-    #             data_url = f"{url}&sp.page={page}"
-    #             response_url = requests.get(data_url, headers=headers)
-    #             items_url = response_url.json()['d']
-    #             for item in items_url:
-    #                 id_item = item['id']  # Store 'item['id']' in the list
-    #                 records_purchase_create = []
-    #
-    #                 url = f'https://zeus.accurate.id/accurate/api/purchase-invoice/detail.do?id={id_item}'
-    #
-    #                 headers = {
-    #                     'Authorization': f'Bearer {access_token}',
-    #                     'X-Session-ID': session
-    #                 }
-    #
-    #                 response = requests.get(url, headers=headers)
-    #                 data = response.json()['d']
-    #                 day, month, year = data['shipDate'].split('/')
-    #                 ymd_date = f"{year}-{month}-{day}"
-    #                 formatted_data = {
-    #                     'name': data['billNumber'],
-    #                     'date_planned': ymd_date,
-    #                     'item_accurate_id': data['id'],
-    #                     'vendor_accurate': data['vendor']['name'],
-    #                     'partner_id': 1,
-    #                     # 'state': 'purchase'
-    #                     # 'subTotal': data['subTotal']
-    #                 }
-    #
-    #                 records_purchase_create.append(formatted_data)
-    #
-    #                 existing_record = product.search(
-    #                     [('item_accurate_id', '=', data['id'])])
-    #
-    #                 if not existing_record:
-    #                     # Create records using the env ORM context
-    #                     purchase_create = purchase.sudo().create(formatted_data)
-    #
-    #                     for value in data['detailItem']:
-    #                         product_id = product.search(
-    #                             [('item_accurate_id', '=', value['itemId'])])
-    #                         item = {
-    #                             'product_id': product_id.id,
-    #                             'name': value['detailName'],
-    #                             'product_qty': value['quantity'],
-    #                             'price_unit': value['unitPrice'],
-    #                             'order_id': purchase_create.id,
-    #                             'price_tax': 0
-    #                         }
-    #                         purchase_order.sudo().create(item)
-    #
-    #                     _logger.info("Background function finished")
+    def get_so_accurate(self, access_token, session):
+
+        product = request.env['product.template']
+        purchase = request.env['sale.order']
+        purchase_order = request.env['sale.order.line']
+        url = "https://zeus.accurate.id/accurate/api/sales-invoice/list.do?sp.pageSize=100"
+
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'X-Session-ID': session
+        }
+
+        response = requests.get(url, headers=headers)
+        id_list = []
+        if response.status_code == 200:
+            data = response.json()
+            page_count = data['sp']['pageCount']
+            for page in range(1, 1 + 1):
+                data_url = f"{url}&sp.page={page}"
+                response_url = requests.get(data_url, headers=headers)
+                items_url = response_url.json()['d']
+                for item in items_url:
+                    id_item = item['id']  # Store 'item['id']' in the list
+                    records_purchase_create = []
+
+                    url = f'https://zeus.accurate.id/accurate/api/sales-invoice/detail.do?id={id_item}'
+
+                    headers = {
+                        'Authorization': f'Bearer {access_token}',
+                        'X-Session-ID': session
+                    }
+
+                    response = requests.get(url, headers=headers)
+                    data = response.json()['d']
+                    day, month, year = data['shipDate'].split('/')
+                    ymd_date = f"{year}-{month}-{day}"
+                    formatted_data = {
+                        'name': data['number'],
+                        'date_order': ymd_date,
+                        'item_accurate_id': data['id'],
+                        'customer': data['customer']['name'],
+                        'partner_id': 1,
+                        # 'state': 'purchase'
+                        # 'subTotal': data['subTotal']
+                    }
+
+                    records_purchase_create.append(formatted_data)
+
+                    existing_record = product.search(
+                        [('item_accurate_id', '=', data['id'])])
+
+                    if not existing_record:
+                        # Create records using the env ORM context
+                        purchase_create = purchase.sudo().create(formatted_data)
+
+                        for value in data['detailItem']:
+                            product_id = product.search(
+                                [('item_accurate_id', '=', value['itemId'])])
+                            item = {
+                                'product_id': product_id.id,
+                                'name': value['detailName'],
+                                'product_qty': value['quantity'],
+                                'price_unit': value['unitPrice'],
+                                'order_id': purchase_create.id,
+                                'price_tax': 0
+                            }
+                            purchase_order.sudo().create(item)
+
+                        _logger.info("Background function finished")
+            return {
+                'data': data
+            }
 
 
 class PurchaseOrderImporter:
