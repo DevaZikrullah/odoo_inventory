@@ -1,11 +1,9 @@
 import requests
 from urllib.parse import parse_qs
 
-import psycopg2
 from odoo import http
 from odoo.http import request, _logger
 from requests.auth import HTTPBasicAuth
-import threading
 import logging
 
 
@@ -65,7 +63,7 @@ class SaleOrderController(http.Controller):
         return response_data
 
     def get_product_accurate(self, access_token, session):
-        url = "https://zeus.accurate.id/accurate/api/item/list.do?fields=id,name,no,quantity&sp.pageSize=100"
+        url = "https://zeus.accurate.id/accurate/api/item/list.do?fields=id,name,no,quantity,vendorUnit&sp.pageSize=100"
 
         headers = {
             'Authorization': f'Bearer {access_token}',
@@ -103,7 +101,7 @@ class SaleOrderController(http.Controller):
                             self.create_product_templates(data_to_create)
                             data_to_create = []
                     else:
-                        self.update_avail_stock(item['no'], item['quantity'])
+                        self.update_avail_stock(item['no'], item['quantity'],item['vendorUnit']['name'])
 
             if data_to_create:
                 self.create_product_templates(data_to_create)
@@ -179,10 +177,12 @@ class SaleOrderController(http.Controller):
 
         product_template_obj.sudo().create(records_to_create)
 
-    def update_avail_stock(self, item_no, qty):
+    def update_avail_stock(self, item_no, qty, uom):
+        uom = request.env['uom_uom'].search([('name', '=', uom)])
         id_product = request.env['product.template'].search([('item_accurate_number', '=', item_no)])
         id_product.write({
-            'type': 'product'
+            'type': 'product',
+            'uom_id': int(uom)
         })
         request.env['stock.quant'].sudo().create({
             'product_id': int(id_product),
