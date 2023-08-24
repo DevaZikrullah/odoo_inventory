@@ -14,19 +14,81 @@ class SaleOrderController(http.Controller):
     def get_data_accurate(self):
         access_token = self.get_access_token()['access_token']
         session = self.open_db_accurate(access_token)['session']
+        customer = self.get_customer(access_token, session)
         # product = self.get_product_accurate(access_token, session)
-        so = self.get_so_accurate(access_token, session)
+        # so = self.get_so_accurate(access_token, session)
 
         return {
             'status': 200,
-            'data': 'mantap'
+            'data': customer
         }
+
+    def get_customer(self, access_token, session):
+        url = 'https://zeus.accurate.id/accurate/api/customer/list.do?fields=id,name,customerNo&sp.pageSize=100'
+
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'X-Session-ID': session
+        }
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            data = response.json()
+            page_count = data['sp']['pageCount']
+            batch_size = 50
+            data_to_create = []
+
+            for page in range(1, page_count + 1):
+                data_url = f"{url}&sp.page={page}"
+                response_url = requests.get(data_url, headers=headers)
+                items_url = response_url.json()['d']
+                for item in items_url:
+                    extracted_item = {
+                        'customer name': item['name'],
+                        'customer id': item['id'],
+                        'customer no': item['customerNo'],
+                    }
+
+                    existing_record = request.env['res.partner'].search(
+                        [('customer_accurate_no', '=', item['customerNo'])])
+
+                    if not existing_record:
+                        data_to_create.append(extracted_item)
+
+                        if len(data_to_create) >= batch_size:
+                            self.create_user_templates(data_to_create)
+                            data_to_create = []
+                    else:
+                        existing_record.write({
+                            'customer_rank': 1
+                        })
+
+                if data_to_create:
+                    self.create_user_templates(data_to_create)
+
+            return {
+                'data': 'ok'
+            }
+
+    def create_user_templates(self, data_to_create):
+        product_template_obj = request.env['res.partner']
+        records_to_create = []
+
+        for item in data_to_create:
+            record_vals = {
+                'name': item['customer name'],
+                'customer_accurate_id': item['customer id'],
+                'customer_accurate_no': item['customer no']
+            }
+            records_to_create.append(record_vals)
+
+        product_template_obj.sudo().create(records_to_create)
 
     def get_access_token(self):
         url = 'https://account.accurate.id/oauth/authorize'
         client_id = '8de2a1e6-4b1c-4ca2-8898-f0bd18ed0447'
         redirect_uri = 'http://localhost:8069/web/assets/aol-oauth-callback'
-        scope = 'purchase_invoice_view+item_view+sales_invoice_view'
+        scope = 'purchase_invoice_view+item_view+sales_invoice_view+customer_view+vendor_view'
         username = 'noviamardiyanti85@gmail.com'
         password = '@Herman998'
         response = requests.get(url,
@@ -104,8 +166,6 @@ class SaleOrderController(http.Controller):
                 self.create_product_templates(data_to_create)
 
             return {
-                'session': session,
-                'token': access_token,
                 'item': data['d'],
             }
         else:
