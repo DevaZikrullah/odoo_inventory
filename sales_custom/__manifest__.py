@@ -3,7 +3,7 @@
     'description': """
         Custome Sale
     """,
-    "depends": ["sale","product","purchase","stock"],
+    "depends": ["sale","product","purchase","stock","base"],
     'category': 'custom HIJ',
     'data': [
         'views/sale_quot_views.xml',
