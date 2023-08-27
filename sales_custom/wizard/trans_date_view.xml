@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="trans_date_wizard_form_view" model="ir.ui.view">
+        <field name="name">trans.date.wizard.form</field>
+        <field name="model">trans.date.wizard</field>
+        <field name="arch" type="xml">
+            <form string="form_string">
+                <group col="1">
+                    <div>
+                        <a>From :</a>
+                        <field name="date_from" />
+                        <a>To :</a>
+                        <field name="date_to" />
+                    </div>
+                </group>
+                <footer>
+                     <button
+                        name="update_accurate_button"
+                        string="Update Accurate"
+                        type="object"
+                        class="oe_highlight"
+                    />
+                    <button string="Cancel" class="btn btn-primary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!--Action for hotel housekeeping wizard -->
+    <record id="action_trans_date_wizard" model="ir.actions.act_window">
+        <field name="name">Update Accurate</field>
+        <field name="res_model">trans.date.wizard</field>
+        <field name="binding_view_types">form</field>
+        <field name="view_mode">form</field>
+    </record>
+
+</odoo>

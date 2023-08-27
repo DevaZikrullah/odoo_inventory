@@ -3,10 +3,13 @@
     'description': """
         Custome Sale
     """,
-    "depends": ["sale","product","purchase","stock","base"],
+    "depends": ["sale","product","purchase","stock","base","fleet"],
     'category': 'custom HIJ',
     'data': [
         'views/sale_quot_views.xml',
+        'wizard/trans_date_view.xml',
+        'views/fleet_views.xml',
+        'wizard/delivered_view.xml'
     ],
     'installable': True,
     'application': True,

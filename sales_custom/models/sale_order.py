@@ -9,3 +9,4 @@ class SaleOrder(models.Model):
     accurate_status = fields.Char()
     customer = fields.Char()
     no_accurate = fields.Char()
+    accurate_address = fields.Char()

@@ -11,5 +11,29 @@
                </xpath>
            </field>
        </record>
+
+       <record id="stock_inherited_form_view" model="ir.ui.view">
+           <field name="name">stock.picking.view.form.inherit</field>
+           <field name="model">stock.picking</field>
+           <field name="inherit_id" ref="stock.view_picking_form"/>
+           <field name="arch" type="xml">
+
+               <xpath expr="//field[@name='origin']" position="after">
+                   <field name="address_customer"/>
+                   <field name="vehicle_id"/>
+               </xpath>
+           </field>
+       </record>
+       <record id="ir_actions_server_custom" model="ir.actions.server">
+        <field name="name">Delivered</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_stock_picking"/>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.delivered()
+        </field>
+        <field name="binding_model_id" ref="sales_custom.model_stock_picking"/>
+       </record>
    </data>
 </odoo>
