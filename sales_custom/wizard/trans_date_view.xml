@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <form string="form_string">
                 <group col="1">
+                    <b>Tanggal Pengakuan Transaksi</b>
                     <div>
                         <a>From :</a>
                         <field name="date_from" />
@@ -17,6 +18,18 @@
                      <button
                         name="update_accurate_button"
                         string="Update Accurate"
+                        type="object"
+                        class="oe_highlight"
+                    />
+                    <button
+                        name="update_customer_button"
+                        string="Update Customer"
+                        type="object"
+                        class="oe_highlight"
+                    />
+                    <button
+                        name="update_product_button"
+                        string="Update Product"
                         type="object"
                         class="oe_highlight"
                     />

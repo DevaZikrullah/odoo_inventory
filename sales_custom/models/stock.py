@@ -31,9 +31,5 @@ class StockInh(models.Model):
                 [('name', '=', value.origin)])
             value.address_customer = address.accurate_address
 
-    # @api.depends('state')
-    # def vehicle_compute(self):
-    #     if self.state == 'done':
-    #         print(self)
-    #         # self.vehicle_id = None
+
 

@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <form string="form_string">
                 <group col="1">
+                    <b>Pilih Kendaraan</b>
                     <div>
                         <field name="vehicle_id" />
                     </div>

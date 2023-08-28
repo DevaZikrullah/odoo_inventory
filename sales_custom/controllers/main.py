@@ -14,6 +14,7 @@ class SaleOrderController(http.Controller):
     def get_data_accurate(self, date_from, date_to):
         access_token = self.get_access_token()['access_token']
         session = self.open_db_accurate(access_token)['session']
+        # cust = self.get_customer(access_token,session)
         # product = self.get_product_accurate(access_token, session)
         self.get_so_accurate(access_token, session, date_from, date_to)
 
@@ -28,7 +29,9 @@ class SaleOrderController(http.Controller):
         #     'session': session
         # }
 
-    def get_customer(self, access_token, session):
+    def get_customer(self):
+        access_token = self.get_access_token()['access_token']
+        session = self.open_db_accurate(access_token)['session']
         url = 'https://zeus.accurate.id/accurate/api/customer/list.do?fields=id,name,customerNo&sp.pageSize=100'
 
         headers = {
@@ -125,7 +128,9 @@ class SaleOrderController(http.Controller):
 
         return response_data
 
-    def get_product_accurate(self, access_token, session):
+    def get_product_accurate(self):
+        access_token = self.get_access_token()['access_token']
+        session = self.open_db_accurate(access_token)['session']
         url = "https://zeus.accurate.id/accurate/api/item/list.do?fields=id,name,no,quantity,vendorUnit&sp.pageSize=100"
 
         headers = {
