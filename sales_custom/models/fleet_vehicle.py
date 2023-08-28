@@ -12,7 +12,6 @@ class FleetVehicle(models.Model):
     @api.depends('fleet_order_line')
     def calculate_storage(self):
         total_qty = []
-
         for value in self:
             if value.fleet_order_line:
                 avail = value.fleet_order_line.move_line_ids
@@ -22,3 +21,9 @@ class FleetVehicle(models.Model):
                 self.avail_storage = value.limit_storage - sum(total_qty)
                 if self.avail_storage < 0:
                     raise UserError('Muatan Penuh')
+
+    # @api.depends('state')
+    # def compute_staging(self):
+    #     for item in self.fleet_order_line:
+    #         item.
+
