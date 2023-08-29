@@ -1,5 +1,4 @@
 from odoo import models, api, http, fields
-from odoo.http import request
 
 
 class ProductCustom(models.Model):
@@ -7,3 +6,6 @@ class ProductCustom(models.Model):
 
     item_accurate_id = fields.Char('Accurate ID')
     item_accurate_number = fields.Char('Accurate Number')
+    panjang = fields.Integer('Panjang')
+    lebar = fields.Integer('Lebar')
+    tinggi = fields.Integer('Tinggi')

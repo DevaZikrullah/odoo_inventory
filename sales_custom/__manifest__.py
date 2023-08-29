@@ -9,7 +9,8 @@
         'views/sale_quot_views.xml',
         'wizard/trans_date_view.xml',
         'views/fleet_views.xml',
-        'wizard/delivered_view.xml'
+        'wizard/delivered_view.xml',
+        'views/product_template_views.xml'
     ],
     'installable': True,
     'application': True,
