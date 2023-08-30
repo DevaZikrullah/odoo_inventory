@@ -11,6 +11,9 @@
                         <field name="vehicle_id" />
                     </div>
                 </group>
+                <group>
+                    <field name="display_order_line" readonly="1" widget="html"/>
+                </group>
                 <footer>
                     <button
                         name="delivered_button"
@@ -18,7 +21,12 @@
                         type="object"
                         class="oe_highlight"
                     />
-                    <button string="Cancel" class="btn btn-primary" special="cancel" />
+                    <button
+                        name="cancel_button"
+                        string="Cancel"
+                        type="object"
+                        class="oe_highlight"
+                    />
                 </footer>
             </form>
         </field>

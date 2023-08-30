@@ -16,7 +16,6 @@ class FleetVehicle(models.Model):
             if value.fleet_order_line:
                 avail = value.fleet_order_line.move_line_ids
                 for item in avail:
-                    print(item.product_uom_qty)
                     total_qty.append(item.product_uom_qty)
                 self.avail_storage = value.limit_storage - sum(total_qty)
                 if self.avail_storage < 0:

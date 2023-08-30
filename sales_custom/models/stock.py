@@ -1,17 +1,20 @@
-from odoo import models, fields,api
+from odoo import models, fields, api
 
 
 class StockInh(models.Model):
     _inherit = 'stock.picking'
 
-    address_customer = fields.Char(string='Address Customer',compute='address_cust')
+    address_customer = fields.Char(string='Address Customer', compute='address_cust')
     vehicle_id = fields.Many2one('fleet.vehicle', string='Vehicle')
-    state = fields.Selection(selection_add=[
-        ('delivery', 'Delivery'), ('done',)
-    ])
+    state = fields.Selection(selection_add=[('loading', 'Loading'), ('done',)])
+    temp_storage_show = fields.Boolean()
 
     def delivered(self):
         active_ids = self.env.context.get('active_ids', [])
+        for value in active_ids:
+            self.env['stock.picking'].search([('id', '=', value)]).write({
+                'temp_storage_show':True
+            })
         return {
             'type': 'ir.actions.act_window',
             'name': 'Delivered',
@@ -30,6 +33,3 @@ class StockInh(models.Model):
             address = self.env['sale.order'].search(
                 [('name', '=', value.origin)])
             value.address_customer = address.accurate_address
-
-
-
