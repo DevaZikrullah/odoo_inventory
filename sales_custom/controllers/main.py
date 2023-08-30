@@ -248,22 +248,16 @@ class SaleOrderController(http.Controller):
         if uom is not None:
             uom_type = request.env['uom.uom'].search([('name', '=', uom)])
             id_product = request.env['product.template'].search([('item_accurate_number', '=', item_no)])
-            existing_record = request.env['stock.quant'].search(
-                [('product_id', '=', int(id_product))])
-            if existing_record is None:
-                id_product.write({
-                    'type': 'product',
-                    'uom_id': int(uom_type)
-                })
-                request.env['stock.quant'].sudo().create({
-                    'product_id': int(id_product),
-                    'location_id': 8,
-                    'quantity': qty
-                })
-            else:
-                existing_record.write({
-                    'quantity':qty
-                })
+
+            id_product.write({
+                'type': 'product',
+                'uom_id': int(uom_type)
+            })
+            request.env['stock.quant'].sudo().create({
+                'product_id': int(id_product),
+                'location_id': 8,
+                'quantity': qty
+            })
 
     def open_db_accurate(self, access_token):
         url = 'https://account.accurate.id/api/open-db.do?id=683745'
