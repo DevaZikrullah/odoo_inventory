@@ -157,6 +157,7 @@ class SaleOrderController(http.Controller):
                         'Item Name': item['name'],
                         'Item Number': item['no'],
                         'Item Stock': item['quantity'],
+                        'Item Uom': item['vendorUnit']['name'] if 'vendorUnit' in item and item['vendorUnit'] else 'PCS'
                     }
 
                     existing_record = request.env['product.template'].search(
@@ -170,7 +171,7 @@ class SaleOrderController(http.Controller):
                             data_to_create = []
                     else:
                         if item['vendorUnit'] is not None:
-                            self.update_avail_stock(item['no'], item['quantity'], item['vendorUnit']['name'])
+                            self.update_avail_stock(item['no'], item['quantity'])
 
             if data_to_create:
                 self.create_product_templates(data_to_create)
@@ -235,27 +236,30 @@ class SaleOrderController(http.Controller):
         records_to_create = []
 
         for item in data_to_create:
-            record_vals = {
-                'name': item['Item Name'],
-                'item_accurate_id': item['Item ID'],
-                'item_accurate_number': item['Item Number']
-            }
-            records_to_create.append(record_vals)
+            if item['Item Uom'] is not None:
+                uom_type = request.env['uom.uom'].search([('name', '=', item['Item Uom'])])
+
+                record_vals = {
+                    'name': item['Item Name'],
+                    'item_accurate_id': item['Item ID'],
+                    'item_accurate_number': item['Item Number'],
+                    'uom_type': int(uom_type)
+                }
+                records_to_create.append(record_vals)
 
         product_template_obj.sudo().create(records_to_create)
 
-    def update_avail_stock(self, item_no, qty, uom):
-        if uom is not None:
-            uom_type = request.env['uom.uom'].search([('name', '=', uom)])
-            id_product = request.env['product.template'].search([('item_accurate_number', '=', item_no)])
+    def update_avail_stock(self, item_no, qty):
+        id_product = request.env['product.template'].search([('item_accurate_number', '=', item_no)])
 
-            id_product.write({
-                'type': 'product',
-                'uom_id': int(uom_type)
-            })
+        if not id_product:
             request.env['stock.quant'].sudo().create({
                 'product_id': int(id_product),
                 'location_id': 8,
+                'quantity': qty
+            })
+        else:
+            request.env['stock.quant'].search([('product_id', '=', id_product.id)]).write({
                 'quantity': qty
             })
 
@@ -270,7 +274,7 @@ class SaleOrderController(http.Controller):
 
         return response.json()
 
-    def get_po_accurate(self, access_token, session,from_date,to_date):
+    def get_po_accurate(self, access_token, session, from_date, to_date):
 
         product = request.env['product.template']
         purchase = request.env['purchase.order']
@@ -378,7 +382,7 @@ class SaleOrderController(http.Controller):
                         day, month, year = data['shipDate'].split('/')
                         ymd_date = f"{year}-{month}-{day}"
                         customer_id = request.env['res.partner'].search(
-                            [('customer_accurate_id', '=', data['customerId'])],limit=1)
+                            [('customer_accurate_id', '=', data['customerId'])], limit=1)
                         formatted_data = {
                             'name': data['number'],
                             'date_order': ymd_date,
