@@ -16,8 +16,10 @@ class SaleOrderController(http.Controller):
         session = self.open_db_accurate(access_token)['session']
         # cust = self.get_customer(access_token,session)
         # product = self.get_product_accurate(access_token, session)
-        self.get_so_accurate(access_token, session, date_from, date_to)
-
+        # self.get_so_accurate(access_token, session, date_from, date_to)
+        print(access_token)
+        print(session)
+        exit()
         return {
             'status': 200,
             'data': 'sucess'
@@ -239,11 +241,22 @@ class SaleOrderController(http.Controller):
             if item['Item Uom'] is not None:
                 uom_type = request.env['uom.uom'].search([('name', '=', item['Item Uom'])])
 
+                if not uom_type:
+                    uom_category = request.env['uom.category'].create({
+                        'name': item['Item Uom']
+                    })
+
+                    uom_type.create({
+                        'name': item['Item Uom'],
+                        'category_id': uom_category.id
+                    })
+
                 record_vals = {
                     'name': item['Item Name'],
                     'item_accurate_id': item['Item ID'],
                     'item_accurate_number': item['Item Number'],
-                    'uom_type': int(uom_type)
+                    'uom_id': int(uom_type),
+                    'uom_po_id': int(uom_type)
                 }
                 records_to_create.append(record_vals)
 
