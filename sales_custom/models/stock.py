@@ -6,7 +6,7 @@ class StockInh(models.Model):
 
     address_customer = fields.Char(string='Address Customer', compute='address_cust')
     vehicle_id = fields.Many2one('fleet.vehicle', string='Vehicle')
-    state = fields.Selection(selection_add=[('loading', 'Loading'), ('done',)])
+    state = fields.Selection(selection_add=[('delivered', 'Delivered'), ('done',)])
     temp_storage_show = fields.Boolean()
 
     def delivered(self):
@@ -33,3 +33,6 @@ class StockInh(models.Model):
             address = self.env['sale.order'].search(
                 [('name', '=', value.origin)])
             value.address_customer = address.accurate_address
+
+    def button_done_delivered(self):
+        print('ok')
