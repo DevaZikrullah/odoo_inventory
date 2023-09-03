@@ -19,7 +19,6 @@ class SaleOrderController(http.Controller):
         # self.get_so_accurate(access_token, session, date_from, date_to)
         print(access_token)
         print(session)
-        exit()
         return {
             'status': 200,
             'data': 'sucess'
