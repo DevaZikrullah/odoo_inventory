@@ -16,10 +16,11 @@ class transDate(models.Model):
         accurate = main.SaleOrderController()
         accurate.get_data_accurate(formatted_date_from, formatted_date_to)
 
-    def update_customer_button(self):
-        cust = main.SaleOrderController()
-        cust.get_customer()
+    def update_accurate_button_po(self):
+        formatted_date_from = self.date_from.strftime('%d/%m/%Y')
+        formatted_date_to = self.date_to.strftime('%d/%m/%Y')
 
-    def update_product_button(self):
-        product = main.SaleOrderController()
-        product.get_product_accurate()
+        accurate = main.SaleOrderController()
+        accurate.get_po_accurate(formatted_date_from, formatted_date_to)
+
+

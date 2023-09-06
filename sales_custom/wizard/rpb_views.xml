@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="delivered_wizard_form_view" model="ir.ui.view">
+        <field name="name">rpb.wizard.form</field>
+        <field name="model">rpb.wizard</field>
+        <field name="arch" type="xml">
+            <form string="form_string">
+                <group>
+                    <field name="display_order_line" readonly="1" widget="html"/>
+                </group>
+                <footer>
+                    <button
+                        name="rpb_button"
+                        string="RPB"
+                        type="object"
+                        class="oe_highlight"
+                    />
+                    <button
+                        name="cancel_button"
+                        string="Cancel"
+                        type="object"
+                        class="oe_highlight"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!--Action for hotel housekeeping wizard -->
+    <record id="action_trans_date_wizard" model="ir.actions.act_window">
+        <field name="name">Rpb</field>
+        <field name="res_model">rpb.wizard</field>
+        <field name="binding_view_types">form</field>
+        <field name="view_mode">form</field>
+    </record>
+
+</odoo>

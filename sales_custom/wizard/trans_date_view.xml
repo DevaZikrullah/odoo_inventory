@@ -7,6 +7,8 @@
             <form string="form_string">
                 <group col="1">
                     <b>Tanggal Pengakuan Transaksi</b>
+                    <a>Update Accurate Button: Harus mengisi form dibawah</a>
+                    <a>Update Customer,Update Product Button: Tidak perlu mengisi form dibawah</a>
                     <div>
                         <a>From :</a>
                         <field name="date_from" />
@@ -17,22 +19,28 @@
                 <footer>
                      <button
                         name="update_accurate_button"
-                        string="Update Accurate"
+                        string="Update Accurate SO"
                         type="object"
                         class="oe_highlight"
                     />
                     <button
-                        name="update_customer_button"
-                        string="Update Customer"
+                        name="update_accurate_button_po"
+                        string="Update Accurate PO"
                         type="object"
                         class="oe_highlight"
                     />
-                    <button
-                        name="update_product_button"
-                        string="Update Product"
-                        type="object"
-                        class="oe_highlight"
-                    />
+<!--                    <button-->
+<!--                        name="update_customer_button"-->
+<!--                        string="Update Customer"-->
+<!--                        type="object"-->
+<!--                        class="oe_highlight"-->
+<!--                    />-->
+<!--                    <button-->
+<!--                        name="update_product_button"-->
+<!--                        string="Update Product"-->
+<!--                        type="object"-->
+<!--                        class="oe_highlight"-->
+<!--                    />-->
                     <button string="Cancel" class="btn btn-primary" special="cancel" />
                 </footer>
             </form>

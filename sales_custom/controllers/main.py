@@ -129,6 +129,7 @@ class SaleOrderController(http.Controller):
 
         return response_data
 
+    @http.route('/api/accurate-product', type='http', auth="public")
     def get_product_accurate(self):
         access_token = self.get_access_token()['access_token']
         session = self.open_db_accurate(access_token)['session']
@@ -255,7 +256,8 @@ class SaleOrderController(http.Controller):
                     'item_accurate_id': item['Item ID'],
                     'item_accurate_number': item['Item Number'],
                     'uom_id': int(uom_type),
-                    'uom_po_id': int(uom_type)
+                    'uom_po_id': int(uom_type),
+                    'detailed_type': 'product'
                 }
                 records_to_create.append(record_vals)
 
@@ -263,6 +265,10 @@ class SaleOrderController(http.Controller):
 
     def update_avail_stock(self, item_no, qty):
         id_product = request.env['product.template'].search([('item_accurate_number', '=', item_no)])
+
+        id_product.write({
+            'detailed_type': 'product'
+        })
 
         if not id_product:
             request.env['stock.quant'].sudo().create({
@@ -286,12 +292,12 @@ class SaleOrderController(http.Controller):
 
         return response.json()
 
-    def get_po_accurate(self, access_token, session, from_date, to_date):
-
+    def get_po_accurate(self, from_date, to_date):
         product = request.env['product.template']
         purchase = request.env['purchase.order']
         purchase_order = request.env['purchase.order.line']
-        # url = "https://zeus.accurate.id/accurate/api/purchase-invoice/list.do?sp.pageSize=100"
+        access_token = self.get_access_token()['access_token']
+        session = self.open_db_accurate(access_token)['session']
         url = f'https://zeus.accurate.id/accurate/api/purchase-invoice/list.do?sp.pageSize=100&filter.transDate.op' \
               f'=BETWEEN&filter.transDate.val={from_date}&filter.transDate.val={to_date}'
 
@@ -304,7 +310,7 @@ class SaleOrderController(http.Controller):
         if response.status_code == 200:
             data = response.json()
             page_count = data['sp']['pageCount']
-            for page in range(1, 1 + 1):
+            for page in range(1, page_count + 1):
                 data_url = f"{url}&sp.page={page}"
                 response_url = requests.get(data_url, headers=headers)
                 items_url = response_url.json()['d']
@@ -430,3 +436,26 @@ class SaleOrderController(http.Controller):
         return {
             'data': records_so_create
         }
+
+    def accurate_so_sync(self, id_so):
+        access_token = self.get_access_token()['access_token']
+        session = self.open_db_accurate(access_token)['session']
+        url_item = f'https://zeus.accurate.id/accurate/api/sales-invoice/detail.do?id={id_so}'
+
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'X-Session-ID': session
+        }
+
+        response = requests.get(url_item, headers=headers)
+        if response.status_code == 200:
+            data = response.json()['d']
+            for value in data['detailItem']:
+                item = {
+                    'product_id': product_id.id,
+                    'name': value['detailName'],
+                    'product_uom_qty': value['quantity'],
+                    'price_unit': value['unitPrice'],
+                    'order_id': sale_order_data.id,
+                    'price_tax': 0
+                }

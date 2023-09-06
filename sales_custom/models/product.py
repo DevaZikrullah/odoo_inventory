@@ -6,6 +6,10 @@ class ProductCustom(models.Model):
 
     item_accurate_id = fields.Char('Accurate ID')
     item_accurate_number = fields.Char('Accurate Number')
+    # accurate_warehouse = fields.Char('Warehouse')
     panjang = fields.Integer('Panjang')
     lebar = fields.Integer('Lebar')
     tinggi = fields.Integer('Tinggi')
+
+    def test(self):
+        print('pk')

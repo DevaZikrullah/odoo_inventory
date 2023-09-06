@@ -1,27 +1,25 @@
 from odoo import models, fields
 
 
-class Delivered(models.Model):
-    _name = 'delivered.wizard'
+class Rpb(models.Model):
+    _name = 'rpb.wizard'
 
-    vehicle_id = fields.Many2one('fleet.vehicle')
     cust_temp = fields.Char('Customer')
     display_order_line = fields.Char(default=lambda self: self._get_record_line())
 
-    def delivered_button(self):
+    def rpb_button(self):
         next_stages_id = []
         for active_id in self.env.context.get('data'):
             stock_picking = self.env['stock.picking'].search([('id', '=', active_id)])
             stock_picking.write({
-                'name': stock_picking.name + '/' + self.vehicle_id.name,
-                'vehicle_id': int(self.vehicle_id),
+                'name': stock_picking.name + '/' + 'RPB',
                 'state': 'draft',
             })
             next_stages_id.append(active_id)
         for value_id in next_stages_id:
             stock_picking = self.env['stock.picking'].search([('id', '=', value_id)])
             stock_picking.write({
-                'state': 'delivery',
+                'state': 'rpb',
                 'picking_type_id': 8
             })
 
