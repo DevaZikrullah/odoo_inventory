@@ -341,10 +341,11 @@ class SaleOrderController(http.Controller):
 
                     records_purchase_create.append(formatted_data)
 
-                    existing_record = product.search(
-                        [('item_accurate_id', '=', data['id'])])
-
+                    existing_record = purchase.search(
+                        [('item_accurate_id', '=', str(data['id']))])
                     if not existing_record:
+                        # print(type(data['id']))
+
                         # Create records using the env ORM context
                         purchase_create = purchase.sudo().create(formatted_data)
                         for value in data['detailItem']:
