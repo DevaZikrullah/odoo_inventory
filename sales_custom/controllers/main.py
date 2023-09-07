@@ -264,22 +264,22 @@ class SaleOrderController(http.Controller):
         product_template_obj.sudo().create(records_to_create)
 
     def update_avail_stock(self, item_no, qty):
-        id_product = request.env['product.template'].search([('item_accurate_number', '=', item_no)])
+        product_template = request.env['product.template'].search([('item_accurate_number', '=', item_no)])
 
-        id_product.write({
-            'detailed_type': 'product'
-        })
+        if product_template:
+            product_id = product_template.product_variant_id.id
+            quant_record = request.env['stock.quant'].search([('product_id', '=', product_id)])
 
-        if not id_product:
-            request.env['stock.quant'].sudo().create({
-                'product_id': int(id_product),
-                'location_id': 8,
-                'quantity': qty
-            })
-        else:
-            request.env['stock.quant'].search([('product_id', '=', id_product.id)]).write({
-                'quantity': qty
-            })
+            if not quant_record:
+                request.env['stock.quant'].sudo().create({
+                    'product_id': product_id,
+                    'location_id': 8,
+                    'quantity': qty
+                })
+            else:
+                quant_record.write({
+                    'quantity': qty
+                })
 
     def open_db_accurate(self, access_token):
         url = 'https://account.accurate.id/api/open-db.do?id=683745'
