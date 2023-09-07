@@ -20,9 +20,10 @@ class Delivered(models.Model):
             next_stages_id.append(active_id)
         for value_id in next_stages_id:
             stock_picking = self.env['stock.picking'].search([('id', '=', value_id)])
+            pick_type = self.env['stock.picking.type'].search([('name','=','delivery')])
             stock_picking.write({
                 'state': 'delivery',
-                'picking_type_id': 8
+                'picking_type_id': int(pick_type)
             })
 
     def _get_record_line(self):
