@@ -6,3 +6,5 @@ class resPartner(models.Model):
 
     customer_accurate_id = fields.Char('Accurate ID Customer')
     customer_accurate_no = fields.Char()
+    vendor_accurate_id = fields.Char()
+    vendor_accurate_no = fields.Char()

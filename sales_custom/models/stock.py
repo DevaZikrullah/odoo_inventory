@@ -5,7 +5,7 @@ from ..controllers import main
 class StockInh(models.Model):
     _inherit = 'stock.picking'
 
-    address_customer = fields.Char(string='Address Customer', compute='address_cust')
+    address_accurate = fields.Char(string='Address', compute='address_cust')
     vehicle_id = fields.Many2one('fleet.vehicle', string='Vehicle')
     state = fields.Selection(selection_add=[
         ('rpb','RPB'),
@@ -54,11 +54,15 @@ class StockInh(models.Model):
         for value in self:
             address = self.env['sale.order'].search(
                 [('name', '=', value.origin)])
-            value.address_customer = address.accurate_address
+            value.address_accurate = address.accurate_address
 
     def update_customer_button(self):
         cust = main.SaleOrderController()
         cust.get_customer()
+
+    def update_vendor_button(self):
+        cust = main.SaleOrderController()
+        cust.get_vendor()
 
     def update_product_button(self):
         product = main.SaleOrderController()

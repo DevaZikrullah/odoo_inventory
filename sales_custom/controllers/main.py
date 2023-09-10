@@ -79,6 +79,67 @@ class SaleOrderController(http.Controller):
                 'data': 'ok'
             }
 
+    def get_vendor(self):
+        access_token = self.get_access_token()['access_token']
+        session = self.open_db_accurate(access_token)['session']
+        url = 'https://zeus.accurate.id/accurate/api/vendor/list.do?fields=id,name,vendorNo&sp.pageSize=100'
+
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'X-Session-ID': session
+        }
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            data = response.json()
+            page_count = data['sp']['pageCount']
+            batch_size = 50
+            data_to_create = []
+
+            for page in range(1, page_count):
+                data_url = f"{url}&sp.page={page}"
+                response_url = requests.get(data_url, headers=headers)
+                items_url = response_url.json()['d']
+                for item in items_url:
+                    extracted_item = {
+                        'vendor name': item['name'],
+                        'vendor id': item['id'],
+                        'vendor no': item['vendorNo'],
+                    }
+
+                    existing_record = request.env['res.partner'].search(
+                        [('vendor_accurate_no', '=', item['vendorNo'])])
+
+                    if not existing_record:
+                        data_to_create.append(extracted_item)
+
+                        if len(data_to_create) >= batch_size:
+                            self.create_vendor_templates(data_to_create)
+                            data_to_create = []
+
+
+                if data_to_create:
+                    self.create_vendor_templates(data_to_create)
+
+            return {
+                'data': 'ok'
+            }
+
+    def create_vendor_templates(self, data_to_create):
+        product_template_obj = request.env['res.partner']
+        records_to_create = []
+
+        for item in data_to_create:
+            record_vals = {
+                'name': item['vendor name'],
+                'vendor_accurate_id': item['vendor id'],
+                'vendor_accurate_no': item['vendor no'],
+                'supplier_rank': 1
+            }
+            records_to_create.append(record_vals)
+
+        product_template_obj.sudo().create(records_to_create)
+
     def create_user_templates(self, data_to_create):
         product_template_obj = request.env['res.partner']
         records_to_create = []
@@ -97,7 +158,7 @@ class SaleOrderController(http.Controller):
         url = 'https://account.accurate.id/oauth/authorize'
         client_id = '8de2a1e6-4b1c-4ca2-8898-f0bd18ed0447'
         redirect_uri = 'http://localhost:8069/web/assets/aol-oauth-callback'
-        scope = 'purchase_invoice_view+item_view+sales_invoice_view+customer_view+vendor_view'
+        scope = 'purchase_order_view+item_view+sales_order_view+customer_view+vendor_view'
         username = 'noviamardiyanti85@gmail.com'
         password = '@Herman998'
         response = requests.get(url,
@@ -190,7 +251,7 @@ class SaleOrderController(http.Controller):
     def detail_po_store(self):
         access_token = self.get_access_token()['access_token']
         session = self.open_db_accurate(access_token)['session']
-        url = f'https://zeus.accurate.id/accurate/api/purchase-invoice/detail.do?id=10958'
+        url = f'https://zeus.accurate.id/accurate/api/purchase-order/detail.do?id=10958'
 
         headers = {
             'Authorization': f'Bearer {access_token}',
@@ -200,9 +261,6 @@ class SaleOrderController(http.Controller):
         response = requests.get(url, headers=headers)
 
         data = response.json()['d']
-        # print(data)
-        # # print('aowkaow')
-        # exit()
 
         day, month, year = data['shipDate'].split('/')
         ymd_date = f"{year}-{month}-{day}"
@@ -215,8 +273,6 @@ class SaleOrderController(http.Controller):
             'state': 'purchase'
             # 'subTotal': data['subTotal']
         }
-
-        print(formatted_data)
 
         purchase_create = request.env['purchase.order'].sudo().create(formatted_data)
 
@@ -298,7 +354,7 @@ class SaleOrderController(http.Controller):
         purchase_order = request.env['purchase.order.line']
         access_token = self.get_access_token()['access_token']
         session = self.open_db_accurate(access_token)['session']
-        url = f'https://zeus.accurate.id/accurate/api/purchase-invoice/list.do?sp.pageSize=100&filter.transDate.op' \
+        url = f'https://zeus.accurate.id/accurate/api/purchase-order/list.do?sp.pageSize=100&filter.transDate.op' \
               f'=BETWEEN&filter.transDate.val={from_date}&filter.transDate.val={to_date}'
 
         headers = {
@@ -310,15 +366,15 @@ class SaleOrderController(http.Controller):
         if response.status_code == 200:
             data = response.json()
             page_count = data['sp']['pageCount']
-            for page in range(1, page_count + 1):
+            for page in range(1, page_count):
                 data_url = f"{url}&sp.page={page}"
                 response_url = requests.get(data_url, headers=headers)
                 items_url = response_url.json()['d']
                 for item in items_url:
                     id_item = item['id']  # Store 'item['id']' in the list
                     records_purchase_create = []
-
-                    url = f'https://zeus.accurate.id/accurate/api/purchase-invoice/detail.do?id={id_item}'
+                    url = f'https://zeus.accurate.id/accurate/api/purchase-order/detail.do?id={id_item}'
+                    print(url)
 
                     headers = {
                         'Authorization': f'Bearer {access_token}',
@@ -329,12 +385,15 @@ class SaleOrderController(http.Controller):
                     data = response.json()['d']
                     day, month, year = data['shipDate'].split('/')
                     ymd_date = f"{year}-{month}-{day}"
+                    vendor_id = request.env['res.partner'].search(
+                        [('vendor_accurate_id', '=', data['vendorId'])], limit=1)
+                    result = 1 if int(vendor_id) == 0 else int(vendor_id)
                     formatted_data = {
-                        'name': data['billNumber'],
+                        'name': data['number'],
                         'date_planned': ymd_date,
                         'item_accurate_id': data['id'],
                         'vendor_accurate': data['vendor']['name'],
-                        'partner_id': 1,
+                        'partner_id': result,
                         'state': 'purchase'
                         # 'subTotal': data['subTotal']
                     }
@@ -367,7 +426,7 @@ class SaleOrderController(http.Controller):
         product = request.env['product.template']
         sale = request.env['sale.order']
         sale_order = request.env['sale.order.line']
-        url = f'https://zeus.accurate.id/accurate/api/sales-invoice/list.do?sp.pageSize=100&filter.transDate.op' \
+        url = f'https://zeus.accurate.id/accurate/api/sales-order/list.do?sp.pageSize=100&filter.transDate.op' \
               f'=BETWEEN&filter.transDate.val={from_date}&filter.transDate.val={to_date}'
 
         headers = {
@@ -388,7 +447,7 @@ class SaleOrderController(http.Controller):
                 for item in items_url:
                     id_item = item['id']  # Store 'item['id']' in the list
 
-                    url_item = f'https://zeus.accurate.id/accurate/api/sales-invoice/detail.do?id={id_item}'
+                    url_item = f'https://zeus.accurate.id/accurate/api/sales-order/detail.do?id={id_item}'
 
                     headers = {
                         'Authorization': f'Bearer {access_token}',
@@ -402,12 +461,13 @@ class SaleOrderController(http.Controller):
                         ymd_date = f"{year}-{month}-{day}"
                         customer_id = request.env['res.partner'].search(
                             [('customer_accurate_id', '=', data['customerId'])], limit=1)
+                        result = 1 if int(customer_id) == 0 else int(customer_id)
                         formatted_data = {
                             'name': data['number'],
                             'date_order': ymd_date,
                             'item_accurate_id': data['id'],
                             'customer': data['customer']['name'],
-                            'partner_id': int(customer_id),
+                            'partner_id': result,
                             'accurate_address': data['toAddress'],
                             'state': 'sale'
                         }
@@ -438,25 +498,25 @@ class SaleOrderController(http.Controller):
             'data': records_so_create
         }
 
-    def accurate_so_sync(self, id_so):
-        access_token = self.get_access_token()['access_token']
-        session = self.open_db_accurate(access_token)['session']
-        url_item = f'https://zeus.accurate.id/accurate/api/sales-invoice/detail.do?id={id_so}'
-
-        headers = {
-            'Authorization': f'Bearer {access_token}',
-            'X-Session-ID': session
-        }
-
-        response = requests.get(url_item, headers=headers)
-        if response.status_code == 200:
-            data = response.json()['d']
-            for value in data['detailItem']:
-                item = {
-                    'product_id': product_id.id,
-                    'name': value['detailName'],
-                    'product_uom_qty': value['quantity'],
-                    'price_unit': value['unitPrice'],
-                    'order_id': sale_order_data.id,
-                    'price_tax': 0
-                }
+    # def accurate_so_sync(self, id_so):
+    #     access_token = self.get_access_token()['access_token']
+    #     session = self.open_db_accurate(access_token)['session']
+    #     url_item = f'https://zeus.accurate.id/accurate/api/sales-invoice/detail.do?id={id_so}'
+    #
+    #     headers = {
+    #         'Authorization': f'Bearer {access_token}',
+    #         'X-Session-ID': session
+    #     }
+    #
+    #     response = requests.get(url_item, headers=headers)
+    #     if response.status_code == 200:
+    #         data = response.json()['d']
+    #         for value in data['detailItem']:
+    #             item = {
+    #                 'product_id': product_id.id,
+    #                 'name': value['detailName'],
+    #                 'product_uom_qty': value['quantity'],
+    #                 'price_unit': value['unitPrice'],
+    #                 'order_id': sale_order_data.id,
+    #                 'price_tax': 0
+    #             }

@@ -9,6 +9,12 @@
                <xpath expr="//tree" position="attributes">
                    <attribute name="js_class">button_in_tree</attribute>
                </xpath>
+               <xpath expr="//field[@name='name']" position="before">
+                   <xpath expr="//field[@name='origin']" position="move"/>
+               </xpath>
+               <xpath expr="//field[@name='partner_id']" position="after">
+                   <field name="address_accurate"/>
+               </xpath>
            </field>
        </record>
 
@@ -21,15 +27,25 @@
        </record>
 
        <record id="ir_actions_server_custom_button_update_accurate_product" model="ir.actions.server">
-           <field name="name">Update Customer</field>
+           <field name="name">Update Product</field>
            <field name="type">ir.actions.server</field>
            <field name="model_id" ref="model_stock_picking"/>
            <field name="state">code</field>
            <field name="code">env.get('stock.picking').update_product_button()</field>
        </record>
 
+        <record id="ir_actions_server_custom_button_update_accurate_vendor" model="ir.actions.server">
+           <field name="name">Update Vendor</field>
+           <field name="type">ir.actions.server</field>
+           <field name="model_id" ref="model_stock_picking"/>
+           <field name="state">code</field>
+           <field name="code">env.get('stock.picking').update_vendor_button()</field>
+       </record>
+
        <menuitem id="menu_customer_accurate_button" name="Update Customer Accurate" action="ir_actions_server_custom_button_update_accurate_customer" parent="stock.menu_stock_config_settings"  sequence="2"/>
        <menuitem id="menu_product_accurate_button" name="Update Product Accurate" action="ir_actions_server_custom_button_update_accurate_product" parent="stock.menu_stock_config_settings"  sequence="2"/>
+       <menuitem id="menu_vendor_accurate_button" name="Update Vendor Accurate" action="ir_actions_server_custom_button_update_accurate_vendor" parent="stock.menu_stock_config_settings"  sequence="2"/>
+
 
        <record id="stock_inherited_form_view" model="ir.ui.view">
            <field name="name">stock.picking.view.form.inherit</field>
@@ -45,11 +61,11 @@
                     />
                </header>
                <field name="state" position="replace">
-                   <field name="state" widget="statusbar"/>
+                   <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,assigned,rpb,deliverey,done" />
                </field>
                <xpath expr="//field[@name='origin']" position="after">
-                   <field name="address_customer"/>
-                   <field name="vehicle_id"/>
+                   <field name="address_accurate" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
+                   <field name="vehicle_id" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
                </xpath>
            </field>
        </record>
