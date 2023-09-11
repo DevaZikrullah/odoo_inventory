@@ -16,7 +16,7 @@ class SaleOrderController(http.Controller):
         session = self.open_db_accurate(access_token)['session']
         # cust = self.get_customer(access_token,session)
         # product = self.get_product_accurate(access_token, session)
-        self.get_so_accurate(access_token, session, date_from, date_to)
+        # self.get_so_accurate(access_token, session, date_from, date_to)
         print(access_token)
         print(session)
         return {

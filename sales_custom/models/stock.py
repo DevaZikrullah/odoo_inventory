@@ -5,7 +5,7 @@ from ..controllers import main
 class StockInh(models.Model):
     _inherit = 'stock.picking'
 
-    address_accurate = fields.Char(string='Address', compute='address_cust')
+    address_customer = fields.Char(string='Address', compute='address_cust')
     vehicle_id = fields.Many2one('fleet.vehicle', string='Vehicle')
     state = fields.Selection(selection_add=[
         ('rpb','RPB'),
