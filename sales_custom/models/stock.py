@@ -53,8 +53,8 @@ class StockInh(models.Model):
     def address_cust(self):
         for value in self:
             address = self.env['sale.order'].search(
-                [('name', '=', value.origin)])
-            value.address_accurate = address.accurate_address
+                [('name', '=', value.origin)],limit=1)
+            value.address_customer = address.accurate_address
 
     def update_customer_button(self):
         cust = main.SaleOrderController()
