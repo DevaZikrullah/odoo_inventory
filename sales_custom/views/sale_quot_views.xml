@@ -65,6 +65,7 @@
                </field>
                <xpath expr="//field[@name='origin']" position="after">
                    <field name="address_customer" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
+                   <field name="is_invoice" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
                    <field name="vehicle_id" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
                </xpath>
            </field>

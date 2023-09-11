@@ -16,7 +16,7 @@ class SaleOrderController(http.Controller):
         session = self.open_db_accurate(access_token)['session']
         # cust = self.get_customer(access_token,session)
         # product = self.get_product_accurate(access_token, session)
-        # self.get_so_accurate(access_token, session, date_from, date_to)
+        self.get_so_accurate(access_token, session, date_from, date_to)
         print(access_token)
         print(session)
         return {
@@ -462,6 +462,12 @@ class SaleOrderController(http.Controller):
                         customer_id = request.env['res.partner'].search(
                             [('customer_accurate_id', '=', data['customerId'])], limit=1)
                         result = 1 if int(customer_id) == 0 else int(customer_id)
+                        status = ''
+                        if data['statusName'] == 'Menunggu diproses':
+                            status = 'Belum Difakturkan'
+                        elif data['statusName'] == 'Terproses':
+                            status = 'Sudah Difakturkan'
+
                         formatted_data = {
                             'name': data['number'],
                             'date_order': ymd_date,
@@ -469,6 +475,7 @@ class SaleOrderController(http.Controller):
                             'customer': data['customer']['name'],
                             'partner_id': result,
                             'accurate_address': data['toAddress'],
+                            'has_been_invoiced': status,
                             'state': 'sale'
                         }
 

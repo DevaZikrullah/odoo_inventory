@@ -10,3 +10,4 @@ class SaleOrder(models.Model):
     customer = fields.Char()
     no_accurate = fields.Char()
     accurate_address = fields.Char()
+    has_been_invoiced = fields.Char()
