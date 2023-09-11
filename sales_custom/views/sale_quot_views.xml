@@ -9,11 +9,23 @@
                <xpath expr="//tree" position="attributes">
                    <attribute name="js_class">button_in_tree</attribute>
                </xpath>
-               <xpath expr="//field[@name='name']" position="before">
+               <xpath expr="//field[@name='name']" position="replace">
                    <xpath expr="//field[@name='origin']" position="move"/>
                </xpath>
+                <xpath expr="//field[@name='location_id']" position="replace">
+                   <xpath expr="//field[@name='partner_id']" position="move"/>
+               </xpath>
                <xpath expr="//field[@name='partner_id']" position="after">
-                   <field name="address_customer"/>
+                   <field name="address_customer" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
+               </xpath>
+               <xpath expr="//field[@name='location_dest_id']" position="replace">
+                   <xpath expr="//field[@name='scheduled_date']" position="move"/>
+               </xpath>
+               <xpath expr="//field[@name='scheduled_date']" position="attributes">
+                   <attribute name="widget"/>
+               </xpath>
+               <xpath expr="//field[@name='scheduled_date']" position="after">
+                   <field name="is_invoice" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
                </xpath>
            </field>
        </record>

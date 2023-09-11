@@ -15,6 +15,10 @@ odoo.define('button_near_in_create.tree_button', function (require) {
         }),
         _OpenWizard: function () {
            var self = this;
+           var currentURL = window.location.href;
+           var urlParams = new URLSearchParams(currentURL.split('#')[1]);
+
+           var activeId = urlParams.get('active_id');
             this.do_action({
                type: 'ir.actions.act_window',
                res_model: 'trans.date.wizard',
@@ -24,6 +28,9 @@ odoo.define('button_near_in_create.tree_button', function (require) {
                views: [[false, 'form']],
                target: 'new',
                res_id: false,
+               context:{
+                    id_active: activeId
+               }
            });
        }
     });
