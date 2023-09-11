@@ -11,6 +11,7 @@ class StockInh(models.Model):
         ('rpb','RPB'),
         ('deliverey', 'To Delivery'), ('done',)])
     temp_storage_show = fields.Boolean()
+    is_invoice = fields.Char('Faktur',compute='is_invoices')
 
     def delivered(self):
         active_ids = self.env.context.get('active_ids', [])
@@ -55,6 +56,13 @@ class StockInh(models.Model):
             address = self.env['sale.order'].search(
                 [('name', '=', value.origin)],limit=1)
             value.address_customer = address.accurate_address
+
+    @api.depends('origin')
+    def is_invoices(self):
+        for value in self:
+            address = self.env['sale.order'].search(
+                [('name', '=', value.origin)], limit=1)
+            value.is_invoice = address.has_been_invoiced
 
     def update_customer_button(self):
         cust = main.SaleOrderController()
