@@ -10,6 +10,8 @@ class ProductCustom(models.Model):
     panjang = fields.Integer('Panjang')
     lebar = fields.Integer('Lebar')
     tinggi = fields.Integer('Tinggi')
+    volume = fields.Integer()
+
 
     def test(self):
         print('pk')

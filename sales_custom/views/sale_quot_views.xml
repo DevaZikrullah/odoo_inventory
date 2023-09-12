@@ -30,6 +30,19 @@
            </field>
        </record>
 
+       <record id="stock_inherited_tree_view" model="ir.ui.view">
+        <field name="name">stock.picking.tree.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <tree>
+                <header>
+                    <button name="action_rpb_tree" string="Create RPB" type="object" class="oe_highlight" groups="base.group_user"/>
+                </header>
+            </tree>
+        </field>
+        </record>
+
        <record id="ir_actions_server_custom_button_update_accurate_customer" model="ir.actions.server">
            <field name="name">Update Customer</field>
            <field name="type">ir.actions.server</field>
@@ -71,7 +84,16 @@
                         type="object"
                         class="oe_highlight"
                     />
+                    <button name="action_rpb_form" attrs="{'invisible': [('state', '!=', 'assigned')]}" string="Create RPB" type="object" class="oe_highlight" groups="base.group_user"/>
                </header>
+               <div class="oe_button_box" name="button_box">
+                   <button name="action_count" attrs="{'invisible': [('state', '!=', 'assigned')]}"
+                           type="object"
+                           string="RPB"
+                           class="oe_stat_button"
+                           icon="fa-pencil-square-o">
+                   </button>
+               </div>
                <field name="state" position="replace">
                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,assigned,rpb,deliverey,done" />
                </field>
@@ -82,6 +104,21 @@
                </xpath>
            </field>
        </record>
+
+        <record id="fleet_inherited_form_view" model="ir.ui.view">
+           <field name="name">fleet.vehicle.view.form.inherit</field>
+           <field name="model">fleet.vehicle</field>
+           <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+           <field name="arch" type="xml">
+               <xpath expr="//field[@name='manager_id']" position="after">
+                   <field name="length"/>
+                   <field name="width"/>
+                   <field name="height"/>
+                   <field name="volume"/>
+               </xpath>
+           </field>
+       </record>
+
        <record id="ir_actions_server_custom_delivery" model="ir.actions.server">
         <field name="name">Delivered</field>
         <field name="type">ir.actions.server</field>
