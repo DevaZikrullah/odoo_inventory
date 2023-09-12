@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="wizard_rpb_form_view" model="ir.ui.view">
+        <field name="name">wizard.rpb.form</field>
+        <field name="model">wizard.rpb</field>
+        <field name="arch" type="xml">
+           <form string="Create RPB">
+               <group>
+                   <field name="name" required="1"/>
+                   <field name="stock_picking_id" widget="many2many_tags" options="{'no_create': True, 'no_create_edit':True}"/>
+                   <field name="delivery_date" required="1"/>
+                   <field name="picking_type_id" required="1"/>
+               </group>
+               <group>
+                   <field name="sale_id" widget="many2many_tags" options="{'no_create': True, 'no_create_edit':True}"/>
+                   <field name="vehicle_id" required="1"/>
+                   <field name="driver_id" required="1"/>
+                   <field name="state_available" readonly="1"/>
+                   <field name="total_volume_product" readonly="1"/>
+                   <field name="volume_available" readonly="1"/>
+               </group>
+               <notebook>
+                        <page string="Lines">
+                            <field name="rpb_line_id">
+                                <tree editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="description"/>
+                                    <field name="date_scheduled"/>
+                                    <field name="deadline"/>
+                                    <field name="demand"/>
+                                    <field name="reserved"/>
+                                    <field name="done"/>
+                                    <field name="qty"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Employee">
+                            <field name="employee_line_ids" create="true" edit="true">
+                                <tree editable="bottom" >
+                                    <field name="employee_id"/>
+                                    <field name="worked_hours" widget="float_time"/>
+                                    <field name="rpb_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+
+               <footer>
+                    <button
+                        name="rpb_button"
+                        string="Simpan"
+                        type="object"
+                        class="oe_highlight"
+                    />
+                    <button
+                        name="cancel_button"
+                        string="Cancel"
+                        type="object"
+                        class="oe_highlight"
+                    />
+               </footer>
+           </form>
+        </field>
+    </record>
+
+    <record id="wizard_rpb_action" model="ir.actions.act_window">
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">wizard.rpb</field>
+        <field name="view_mode">form</field>
+    </record>
+
+
+</odoo>

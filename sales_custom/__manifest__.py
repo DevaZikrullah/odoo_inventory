@@ -3,7 +3,7 @@
     'description': """
         Custome Sale
     """,
-    "depends": ["sale","product","purchase","stock","base","fleet","digest"],
+    "depends": ["sale_management","product","purchase","stock","base","fleet","digest", "account", 'hr'],
     'category': 'custom HIJ',
     'data': [
         'views/sale_quot_views.xml',
@@ -11,7 +11,12 @@
         'views/fleet_views.xml',
         'wizard/delivered_view.xml',
         'wizard/rpb_views.xml',
-        'views/product_template_views.xml'
+        'wizard/rpb_views_wizard.xml',
+        'views/product_template_views.xml',
+        'views/prb_views.xml',
+        'views/rpb_rpb_views.xml',
+        'reports/report_rpb.xml',
+        'reports/rpb_format_report.xml'
     ],
     'installable': True,
     'application': True,
