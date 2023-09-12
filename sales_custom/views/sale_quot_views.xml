@@ -84,6 +84,7 @@
                         type="object"
                         class="oe_highlight"
                     />
+                    <field name="count_rpb"/>
                     <button name="action_rpb_form" attrs="{'invisible': [('state', '!=', 'assigned')]}" string="Create RPB" type="object" class="oe_highlight" groups="base.group_user"/>
                </header>
                <div class="oe_button_box" name="button_box">
