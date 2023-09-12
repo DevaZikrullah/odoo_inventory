@@ -56,7 +56,5 @@
         <field name="view_mode">tree,form</field>
         <field name="view_id" ref="rpb_rpb_view_tree"/>
     </record>
-    <menuitem id="menu_rpb_list" name="Data" parent="menu_rpb" action="rpb_rpb_action" sequence="2"/>
-
-
+<!--    <menuitem id="menu_rpb_list" name="Data" parent="menu_rpb" action="rpb_rpb_action" sequence="2"/>-->
 </odoo>

@@ -142,4 +142,5 @@
         <field name="binding_model_id" ref="sales_custom.model_stock_picking"/>
        </record>
    </data>
+    <menuitem id="menu_rpb" name="RPB" parent="stock.menu_stock_root" sequence="6"/>
 </odoo>
