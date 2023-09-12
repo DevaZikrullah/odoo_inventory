@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rpb_rpb_view_form_view" model="ir.ui.view">
+        <field name="name">rpb.rpb.view.form</field>
+        <field name="model">rpb.rpb.view</field>
+        <field name="arch" type="xml">
+           <form string="RPB">
+               <sheet>
+                   <group>
+                   <field name="product_id" required="1"/>
+                   <field name="name" required="1"/>
+                   <field name="stock_picking_id"/>
+                   <field name="source_document_id"/>
+                   <field name="date_scheduled"/>
+                   <field name="deadline"/>
+                   <field name="demand"/>
+                   <field name="reserved"/>
+                   <field name="done"/>
+                   <field name="uom"/>
+                   <field name="vehicle_id" required="1"/>
+                   <field name="driver_id" required="1"/>
+                   <field name="picking_type_id" required="1"/>
+                   </group>
+
+               </sheet>
+
+           </form>
+        </field>
+    </record>
+    <record id="rpb_rpb_view_view_tree" model="ir.ui.view">
+        <field name="name">rpb.rpb.view.view.tree</field>
+        <field name="model">rpb.rpb.view</field>
+        <field name="arch" type="xml">
+            <tree>
+                   <field name="name"/>
+                   <field name="product_id"/>
+                   <field name="stock_picking_id"/>
+                   <field name="source_document_id"/>
+                   <field name="date_scheduled"/>
+                   <field name="deadline"/>
+                   <field name="demand"/>
+                   <field name="reserved"/>
+                   <field name="done"/>
+                   <field name="uom"/>
+                   <field name="vehicle_id" />
+                   <field name="driver_id" />
+                   <field name="picking_type_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="rpb_rpb_view_action" model="ir.actions.act_window">
+        <field name="name">RPB</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">rpb.rpb.view</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="rpb_rpb_view_view_tree"/>
+    </record>
+    <menuitem id="menu_rpb_view_list" name="RPB Line" parent="menu_rpb" action="rpb_rpb_view_action" sequence="3"/>
+
+
+</odoo>
