@@ -117,7 +117,6 @@ class SaleOrderController(http.Controller):
                             self.create_vendor_templates(data_to_create)
                             data_to_create = []
 
-
                 if data_to_create:
                     self.create_vendor_templates(data_to_create)
 
@@ -295,7 +294,7 @@ class SaleOrderController(http.Controller):
 
         for item in data_to_create:
             if item['Item Uom'] is not None:
-                uom_type = request.env['uom.uom'].search([('name', '=', item['Item Uom'])])
+                uom_type = request.env['uom.uom'].search([('name', '=', item['Item Uom'])], limit=1)
 
                 if not uom_type:
                     uom_category = request.env['uom.category'].create({
@@ -461,19 +460,26 @@ class SaleOrderController(http.Controller):
                         ymd_date = f"{year}-{month}-{day}"
                         customer_id = request.env['res.partner'].search(
                             [('customer_accurate_id', '=', data['customerId'])], limit=1)
-                        result = 1 if int(customer_id) == 0 else int(customer_id)
+
+                        result = 'unknown' if int(customer_id) == 0 else int(customer_id)
+                        data_cust = result
+                        print(result)
+                        if result == 'unknown':
+                            data_cust = request.env['res.partner'].search(
+                                [('name', '=', result)], limit=1)
+
                         status = ''
                         if data['statusName'] == 'Menunggu diproses':
                             status = 'Belum Difakturkan'
                         elif data['statusName'] == 'Terproses':
                             status = 'Sudah Difakturkan'
-
+                        print(data_cust)
                         formatted_data = {
                             'name': data['number'],
                             'date_order': ymd_date,
                             'item_accurate_id': data['id'],
                             'customer': data['customer']['name'],
-                            'partner_id': result,
+                            'partner_id': int(data_cust),
                             'accurate_address': data['toAddress'],
                             'has_been_invoiced': status,
                             'state': 'sale'
