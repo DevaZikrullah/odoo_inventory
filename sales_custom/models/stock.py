@@ -15,6 +15,7 @@ class StockInh(models.Model):
     is_invoice = fields.Char('Faktur',compute='is_invoices')
     count_rpb = fields.Integer(compute='_compute_ccount_rpb', store="true")
 
+    @api.depends('address_customer', 'vehicle_id', 'state', 'temp_storage_show', 'count_rpb')
     def _compute_ccount_rpb(self):
         active_ids = self.env.context.get('active_ids', [])
         a = self.env['rpb.rpb.view'].search([('stock_picking_id', 'in', self.ids)])
@@ -26,6 +27,7 @@ class StockInh(models.Model):
     def action_rpb_tree(self):
         active_ids = self.env.context.get('active_ids', [])
         picking_id = self.env['stock.picking'].search([('id', 'in', active_ids)])
+        self.move_lines._set_quantities_to_reservation()
         list = []
         for i in picking_id:
             list.append(i.state)
@@ -33,7 +35,7 @@ class StockInh(models.Model):
         if any(item != 'assigned' for item in list):
             raise UserError('Status Harus Ready!')
             print('l')
-        a = self.env['rpb.rpb'].search([('stock_picking_id', 'in', active_ids)])
+        a = self.env['rpb.rpb.view'].search([('stock_picking_id', 'in', active_ids)])
         for d in a:
             if d:
                 raise UserError('RPB sudah dibuat')
@@ -51,7 +53,8 @@ class StockInh(models.Model):
     def action_rpb_form(self):
         print(self.count_rpb)
         active_ids = self.env.context.get('active_ids', [])[0]
-        a = self.env['rpb.rpb'].search([('stock_picking_id', '=', int(self.id))])
+        self.move_lines._set_quantities_to_reservation()
+        a = self.env['rpb.rpb.view'].search([('stock_picking_id', '=', int(self.id))])
         if a:
             raise UserError('RPB sudah dibuat')
         else:
@@ -83,7 +86,7 @@ class StockInh(models.Model):
             "name": 'RPB',
             "domain": [('id', 'in', picking_id.ids)],
             "res_model": 'rpb.rpb.view',
-            "view_mode": 'tree'}
+            "view_mode": 'tree,form'}
     
     def delivered(self):
         active_ids = self.env.context.get('active_ids', [])

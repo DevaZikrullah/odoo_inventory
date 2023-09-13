@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 from odoo.exceptions import UserError
+import random
 
 
 class wizardRpb(models.TransientModel):
@@ -53,7 +54,7 @@ class wizardRpb(models.TransientModel):
         for i in jumlah_barang:
             a += int(self.env['product.template'].search([('id', '=', i.product_id.product_tmpl_id.id)]).volume) * int(
                 i.done)
-        rpb_car = self.env['rpb.rpb'].search(
+        rpb_car = self.env['rpb.rpb.view'].search(
             [('state_rpb', '=', 'draft'), ('vehicle_id', 'in', self.vehicle_id.ids)])
         print(rpb_car)
         print(limit_volume.limit_storage)
@@ -66,10 +67,10 @@ class wizardRpb(models.TransientModel):
         total = limit_volume.limit_storage - rpb_car_count - volume_saat_ini
         print(total)
         self.volume_available = total
-        if a > int(limit_volume.limit_storage):
+        if a > int(total):
             self.total_volume_product = a
             self.state_available = 'full'
-            raise UserError('WARNIG : Jumlah barang melebihi kapasitas kendaraan ini!')
+            raise UserError('melebihi batas maximum')
             self.vehicle_id = False
         else:
             self.total_volume_product = a
@@ -133,6 +134,9 @@ class wizardRpb(models.TransientModel):
         list = []
         for i in stock_move:
             if not any(item[2]['product_id'] == i.product_id.id for item in list):
+                res = 'Available'
+                if i.forecast_availability < 1:
+                    res = 'Not Available'
                 data = {
                     'id': int(i.id),
                     'name': str(i.name),
@@ -141,7 +145,7 @@ class wizardRpb(models.TransientModel):
                     'date_scheduled': str(i.date),
                     'deadline': str(i.date_deadline),
                     'demand': i.product_uom_qty,
-                    'reserved': i.forecast_availability,
+                    'reserved': res,
                     'done': i.quantity_done,
                     'qty': i.product_uom
                 }
@@ -150,7 +154,6 @@ class wizardRpb(models.TransientModel):
                 for it in list:
                     if it[2]['product_id'] == i.product_id.id:
                         it[2]['demand'] += i.product_uom_qty
-                        it[2]['reserved'] += i.forecast_availability
                         it[2]['done'] += i.quantity_done
 
         print(list)
@@ -165,14 +168,22 @@ class wizardRpb(models.TransientModel):
         rpb_line = self.env['rpb.line'].search([])
         stock_move = self.env['stock.move'].search([('picking_id', 'in', active_ids)])
         list_rpb_view = []
+        rpb_list = self.env['rpb.rpb.view'].search([])
+        andom_number = random.randint(10, 100)
+        jumlah_barang_b = self.rpb_line_id
+        b = 0
+        for i in jumlah_barang_b:
+            b += int(self.env['product.template'].search([('id', '=', i.product_id.product_tmpl_id.id)]).volume) * int(
+                i.done)
         for save in stock_move:
             list_rpb_view.append({
-                "name": 'RPB/' + str(save.name) + '',
+                "name": 'RPB/'+str(save.picking_id.id)+'/'+str(andom_number)+'',
                 "stock_picking_id": int(save.picking_id),
                 "source_document_id": int(save.picking_id.sale_id),
                 "product_id": int(save.product_id),
                 "description": save.description_picking,
                 "date_scheduled": save.date,
+                'total_volume_product' : b,
                 "deadline": save.date_deadline,
                 "demand": save.product_uom_qty,
                 "reserved": save.forecast_availability,
@@ -182,7 +193,7 @@ class wizardRpb(models.TransientModel):
                 "driver_id": self.driver_id.id,
                 "picking_type_id": self.picking_type_id.id
             })
-        self.env['rpb.rpb.view'].create(list_rpb_view)
+        rpb_list.create(list_rpb_view)
         jumlah_barang = self.rpb_line_id
         # tamp_prd = []
         #
@@ -197,6 +208,9 @@ class wizardRpb(models.TransientModel):
                 i.done)
         list = []
         for j in stock_move:
+            res = 'Available'
+            if j.forecast_availability < 1:
+                res = 'Not'
             list.append((0, 0, {
                 'name': str(j.name),
                 'product_id': int(j.product_id),
@@ -237,7 +251,7 @@ class wizardRpbLine(models.TransientModel):
     date_scheduled = fields.Date()
     deadline = fields.Date()
     demand = fields.Float()
-    reserved = fields.Float()
+    reserved = fields.Char()
     done = fields.Float()
     qty = fields.Many2one('uom.uom', string="Uom")
     rpb_id = fields.Many2one('wizard.rpb')

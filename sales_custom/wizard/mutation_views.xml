@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="delivered_wizard_form_view" model="ir.ui.view">
+        <field name="name">mutation.wizard.form</field>
+        <field name="model">mutation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="form_string">
+                <group>
+                    <field name="product_target"/>
+                    <field name="product_dest"/>
+                </group>
+                <footer>
+<!--                    <button-->
+<!--                        name="cancel_button"-->
+<!--                        string="Cancel"-->
+<!--                        type="object"-->
+<!--                        class="oe_highlight"-->
+<!--                    />-->
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mutation_wizard" model="ir.actions.act_window">
+        <field name="name">Mutation</field>
+        <field name="res_model">mutation.wizard</field>
+        <field name="binding_view_types">form</field>
+        <field name="view_mode">form</field>
+    </record>
+
+</odoo>
