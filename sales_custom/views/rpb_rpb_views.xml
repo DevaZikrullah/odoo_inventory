@@ -34,17 +34,11 @@
             <tree>
                    <field name="name"/>
                    <field name="product_id"/>
-                   <field name="stock_picking_id"/>
                    <field name="source_document_id"/>
-                   <field name="date_scheduled"/>
-                   <field name="deadline"/>
-                   <field name="demand"/>
-                   <field name="reserved"/>
                    <field name="done"/>
-                   <field name="uom"/>
+                   <field name="reserved"/>
                    <field name="vehicle_id" />
-                   <field name="driver_id" />
-                   <field name="picking_type_id"/>
+                   <field name="uom"/>
             </tree>
         </field>
     </record>
