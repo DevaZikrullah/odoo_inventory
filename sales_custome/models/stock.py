@@ -33,7 +33,7 @@ class StockInh(models.Model):
         if any(item != 'assigned' for item in list):
             raise UserError('Status Harus Ready!')
             print('l')
-        a = self.env['rpb.rpb'].search([('stock_picking_id', 'in', active_ids)])
+        a = self.env['rpb.rpb.view'].search([('stock_picking_id', 'in', active_ids)])
         for d in a:
             if d:
                 raise UserError('RPB sudah dibuat')
@@ -52,7 +52,7 @@ class StockInh(models.Model):
         print(self.count_rpb)
         active_ids = self.env.context.get('active_ids', [])[0]
         self.move_lines._set_quantities_to_reservation()
-        a = self.env['rpb.rpb'].search([('stock_picking_id', '=', int(self.id))])
+        a = self.env['rpb.rpb.view'].search([('stock_picking_id', '=', int(self.id))])
         if a:
             raise UserError('RPB sudah dibuat')
         else:

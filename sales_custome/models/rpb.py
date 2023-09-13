@@ -43,6 +43,7 @@ class rpbModelView(models.Model):
     product_id = fields.Many2one('product.product')
     description = fields.Text()
     date_scheduled = fields.Date()
+    total_volume_product = fields.Integer()
     deadline = fields.Date()
     demand = fields.Float()
     reserved = fields.Float()
