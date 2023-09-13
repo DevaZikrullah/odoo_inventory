@@ -51,3 +51,7 @@ class rpbModelView(models.Model):
     vehicle_id = fields.Many2one('fleet.vehicle')
     driver_id = fields.Many2one('res.partner')
     picking_type_id = fields.Many2one('stock.picking.type')
+    state_rpb = fields.Selection([
+        ('draft', 'Draft'),
+        ('post', 'Post')
+    ], default="draft")

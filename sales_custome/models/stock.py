@@ -12,9 +12,9 @@ class StockInh(models.Model):
         ('rpb', 'RPB'),
         ('deliverey', 'To Delivery'), ('done',)])
     temp_storage_show = fields.Boolean()
-    count_rpb = fields.Integer(compute='_compute_ccount_rpb', store="true")
+    count_rpb = fields.Integer(compute='_compute_ccount_rpb')
 
-
+    @api.depends('address_customer','vehicle_id','state','temp_storage_show','count_rpb')
     def _compute_ccount_rpb(self):
         active_ids = self.env.context.get('active_ids', [])
         a = self.env['rpb.rpb.view'].search([('stock_picking_id', 'in', self.ids)])
@@ -37,8 +37,8 @@ class StockInh(models.Model):
         for d in a:
             if d:
                 raise UserError('RPB sudah dibuat')
-
         else:
+            self.move_lines._set_quantities_to_reservation()
             return {
                 'type': 'ir.actions.act_window',
                 'name': 'Create RPB',
@@ -51,6 +51,7 @@ class StockInh(models.Model):
     def action_rpb_form(self):
         print(self.count_rpb)
         active_ids = self.env.context.get('active_ids', [])[0]
+        self.move_lines._set_quantities_to_reservation()
         a = self.env['rpb.rpb'].search([('stock_picking_id', '=', int(self.id))])
         if a:
             raise UserError('RPB sudah dibuat')
@@ -83,7 +84,7 @@ class StockInh(models.Model):
             "name": 'RPB',
             "domain": [('id', 'in', picking_id.ids)],
             "res_model": 'rpb.rpb.view',
-            "view_mode": 'tree'}
+            "view_mode": 'tree,form'}
 
     def delivered(self):
         active_ids = self.env.context.get('active_ids', [])

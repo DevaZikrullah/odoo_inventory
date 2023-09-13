@@ -133,6 +133,9 @@ class wizardRpb(models.TransientModel):
         list = []
         for i in stock_move:
             if not any(item[2]['product_id'] == i.product_id.id for item in list):
+                res = 'Available'
+                if i.forecast_availability < 1:
+                    res = 'Not Available'
                 data = {
                     'id': int(i.id),
                     'name': str(i.name),
@@ -141,7 +144,7 @@ class wizardRpb(models.TransientModel):
                     'date_scheduled': str(i.date),
                     'deadline': str(i.date_deadline),
                     'demand': i.product_uom_qty,
-                    'reserved': i.forecast_availability,
+                    'reserved': res,
                     'done': i.quantity_done,
                     'qty': i.product_uom
                 }
@@ -150,7 +153,6 @@ class wizardRpb(models.TransientModel):
                 for it in list:
                     if it[2]['product_id'] == i.product_id.id:
                         it[2]['demand'] += i.product_uom_qty
-                        it[2]['reserved'] += i.forecast_availability
                         it[2]['done'] += i.quantity_done
 
         print(list)
@@ -197,6 +199,9 @@ class wizardRpb(models.TransientModel):
                 i.done)
         list = []
         for j in stock_move:
+            res = 'Available'
+            if j.forecast_availability < 1:
+                res = 'Not'
             list.append((0, 0, {
                 'name': str(j.name),
                 'product_id': int(j.product_id),
@@ -237,7 +242,7 @@ class wizardRpbLine(models.TransientModel):
     date_scheduled = fields.Date()
     deadline = fields.Date()
     demand = fields.Float()
-    reserved = fields.Float()
+    reserved = fields.Char()
     done = fields.Float()
     qty = fields.Many2one('uom.uom', string="Uom")
     rpb_id = fields.Many2one('wizard.rpb')

@@ -61,10 +61,9 @@
                <div class="oe_button_box" name="button_box">
                    <button name="action_count" attrs="{'invisible': [('state', '!=', 'assigned')]}"
                            type="object"
-                           string="RPB"
                            class="oe_stat_button"
                            icon="fa-pencil-square-o">
-<!--                           <field string="RPB" name="count_rpb" widget="statinfo"/>-->
+                           <field string="RPB" name="count_rpb" widget="statinfo"/>
                    </button>
 
                </div>
@@ -88,7 +87,10 @@
                    <field name="length"/>
                    <field name="width"/>
                    <field name="height"/>
-                   <field name="volume"/>
+                   <label for="volume"/>
+                   <div class="o_row">
+                       <field name="volume"/><span>cm3</span>
+                   </div>
                </xpath>
            </field>
        </record>

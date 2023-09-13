@@ -7,6 +7,10 @@
            <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
            <field name="arch" type="xml">
                <xpath expr="//field[@name='location']" position="after">
+                   <label for="set_limit"/>
+                   <div class="o_row">
+                       <field name="set_limit"/><span>%</span>
+                   </div>
                    <field name="limit_storage" />
                    <field name="avail_storage"/>
                </xpath>
