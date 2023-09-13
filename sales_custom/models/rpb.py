@@ -43,6 +43,7 @@ class rpbModelView(models.Model):
     product_id = fields.Many2one('product.product')
     description = fields.Text()
     date_scheduled = fields.Date()
+    total_volume_product = fields.Integer()
     deadline = fields.Date()
     demand = fields.Float()
     reserved = fields.Float()
@@ -51,3 +52,7 @@ class rpbModelView(models.Model):
     vehicle_id = fields.Many2one('fleet.vehicle')
     driver_id = fields.Many2one('res.partner')
     picking_type_id = fields.Many2one('stock.picking.type')
+    state_rpb = fields.Selection([
+        ('draft', 'Draft'),
+        ('post', 'Post')
+    ], default="draft")

@@ -70,6 +70,8 @@
        <menuitem id="menu_customer_accurate_button" name="Update Customer Accurate" action="ir_actions_server_custom_button_update_accurate_customer" parent="stock.menu_stock_config_settings"  sequence="2"/>
        <menuitem id="menu_product_accurate_button" name="Update Product Accurate" action="ir_actions_server_custom_button_update_accurate_product" parent="stock.menu_stock_config_settings"  sequence="2"/>
        <menuitem id="menu_vendor_accurate_button" name="Update Vendor Accurate" action="ir_actions_server_custom_button_update_accurate_vendor" parent="stock.menu_stock_config_settings"  sequence="2"/>
+       <menuitem id="menu_mutation" name="Mutation Product" action="ir_actions_server_custom_button_update_accurate_vendor" parent="stock.menu_stock_config_settings"  sequence="2"/>
+
 
 
        <record id="stock_inherited_form_view" model="ir.ui.view">
