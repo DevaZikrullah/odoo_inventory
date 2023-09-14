@@ -70,8 +70,8 @@ class wizardRpb(models.TransientModel):
         if a > int(total):
             self.total_volume_product = a
             self.state_available = 'full'
-            raise UserError('melebihi batas maximum')
-            self.vehicle_id = False
+            # raise UserError('melebihi batas maximum')
+            # self.vehicle_id = False
         else:
             self.total_volume_product = a
             self.state_available = 'available'
@@ -177,7 +177,7 @@ class wizardRpb(models.TransientModel):
                 i.done)
         for save in stock_move:
             list_rpb_view.append({
-                "name": 'RPB/'+str(save.picking_id.id)+'/'+str(andom_number)+'',
+                "name": ''+str(self.name)+'/'+str(self.id)+'',
                 "stock_picking_id": int(save.picking_id),
                 "source_document_id": int(save.picking_id.sale_id),
                 "product_id": int(save.product_id),
@@ -208,23 +208,43 @@ class wizardRpb(models.TransientModel):
                 i.done)
         list = []
         for j in stock_move:
-            res = 'Available'
-            if j.forecast_availability < 1:
-                res = 'Not'
-            list.append((0, 0, {
-                'name': str(j.name),
-                'product_id': int(j.product_id),
-                'description': str(j.description_picking),
-                'date_scheduled': str(j.date),
-                'deadline': str(j.date_deadline),
-                'demand': j.product_uom_qty,
-                'reserved': j.forecast_availability,
-                'done': j.quantity_done,
-                'qty': int(j.product_uom)
-            }))
+            if not any(item[2]['product_id'] == j.product_id.id for item in list):
+                res = 'Available'
+                if j.forecast_availability < 1:
+                    res = 'Not Available'
+                list.append((0, 0, {
+                    'name': str(j.name),
+                    'product_id': int(j.product_id),
+                    'description': str(j.description_picking),
+                    'date_scheduled': str(j.date),
+                    'deadline': str(j.date_deadline),
+                    'demand': j.product_uom_qty,
+                    'reserved': j.forecast_availability,
+                    'done': j.quantity_done,
+                    'qty': int(j.product_uom)
+                }))
+                # data = {
+                #     'id': int(i.id),
+                #     'name': str(i.name),
+                #     'product_id': int(i.product_id),
+                #     'description': str(i.description_picking),
+                #     'date_scheduled': str(i.date),
+                #     'deadline': str(i.date_deadline),
+                #     'demand': i.product_uom_qty,
+                #     'reserved': res,
+                #     'done': i.quantity_done,
+                #     'qty': i.product_uom
+                # }
+                # list.append((0, 0, data))
+            else:
+                for it in list:
+                    if it[2]['product_id'] == j.product_id.id:
+                        it[2]['demand'] += j.product_uom_qty
+                        it[2]['done'] += j.quantity_done
+            
             # rpb_line.create(data_line)
         data = {
-            'name': self.name,
+            'name': ''+str(self.name)+'/'+str(self.id)+'',
             'stock_picking_id': self.stock_picking_id,
             'sale_id': self.sale_id,
             'vehicle_id': self.vehicle_id.id,
