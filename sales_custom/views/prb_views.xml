@@ -5,7 +5,8 @@
         <field name="model">rpb.rpb</field>
         <field name="arch" type="xml">
            <form string="RPB">
-               <group>
+               <sheet>
+                   <group>
                    <field name="name" required="1"/>
                    <field name="stock_picking_id" widget="many2many_tags"/>
                    <field name="sale_id" widget="many2many_tags"/>
@@ -17,7 +18,7 @@
                    <field name="total_volume_product" required="1"/>
                    <field name="state_rpb" invisible="1"/>
                </group>
-               <notebook>
+                    <notebook>
                         <page string="Lines">
                             <field name="rpb_line_ids">
                                 <tree editable="bottom">
@@ -33,6 +34,7 @@
                             </field>
                         </page>
                     </notebook>
+               </sheet>
            </form>
         </field>
     </record>

@@ -2,49 +2,196 @@
 <odoo>
     <template id="report_rpb">
             <t t-call="web.html_container">
-                <t t-call="web.external_layout">
-                    <t t-foreach="docs" t-as="doc">
-                        <div class="page">
-                            <div class="row" id="hash_header">
-                                <div class="col-md-6">
-                                    <br/>
-                                    <h2>Hash Integrity Result - 28.11.1997</h2>
-                                    <br/>
+                <t t-foreach="docs" t-as="o">
+                     <div style="text-align: center;">
+                        <h4>SURAT JALAN</h4>
+                        <br></br>
+                    </div>
+                    <div class="page">
+                    <div class="oe_structure" />
+                    <div class="row">
+                        <div class="col-8">
+                            <h2>No #<span t-field="o.name" /></h2>
+                            <div id="informations" class="row">
+                                <div class="d-flex col-5 bm-2">
+                                    <div class="mr-1">
+                                        <strong>Tanggal :</strong>
+                                    </div>
+                                    <div>
+                                        <p t-field="o.delivery_date" class="m-0" />
+                                    </div>
+                                    <!--<strong>Tanggal:</strong>-->
+                                    <!--<p t-field="o.tanggal" class="m-0"/>-->
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md-6" id="hash_config_review">
-                                    <br/>
-                                    <h3>Configuration review</h3>
-                                    <br/>
+
+                            <div class="d-flex mt20 mb28">
+                                <div class="mr-1">
+                                    <strong>Mobil :</strong>
+                                </div>
+                                <div>
+                                    <p t-field="o.vehicle_id" class="m-0" />
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <table class="table table-bordered" style="table-layout: fixed" id="hash_config_table">
-                                        <thead style="display: table-row-group">
-                                            <tr>
-                                                <th class="text-center" style="width: 30%" scope="col">Name</th>
-                                                <th class="text-center" style="width: 20%" scope="col">Address</th>
-                                                <th class="text-center" style="width: 50%" scope="col">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <t t-foreach="docs" t-as="doc">
-                                                <tr>
-                                                    <td>
-                                                        [<span t-esc="123"/>] <span t-esc="doc.name"/>
-                                                    </td>
-                                                    <td class="text-center"><span t-esc="doc.alamat"/></td>
-                                                    <td><span t-esc="doc.status"/></td>
-                                                </tr>
-                                            </t>
-                                        </tbody>
-                                    </table>
+
+                            <div class="d-flex mt20 mb28">
+                                <div class="mr-1">
+                                    <strong>Supir :</strong>
+                                </div>
+                                <div>
+                                    <p t-field="o.driver_id" class="m-0" />
                                 </div>
                             </div>
+
+                            <!--<div calss="mt20 mb28">-->
+                            <!--  <strong>NO EPR:</strong>-->
+                            <!--  <p t-field="lines.permintaan_ref" class="m-0"/>-->
+                            <!--</div>-->
+
+
+
+
+                            <!--<div id="informations" class="row mt32 mb32">-->
+                            <!--    <div t-if="o.pengirim" class="col-3 bm-2">-->
+                            <!--        <strong></strong>-->
+                            <!--<p t-field="o.pengirim" class="m-0"/>-->
+                            <!--    </div>-->
+                            <!--</div>-->
+
                         </div>
-                    </t>
+
+                    </div>
+
+                    <!--<div class="oe_structure"/>-->
+                    <!--<h2>No #<span t-field="o.name"/></h2>-->
+                    <!--<div id="informations" class="row mt32 mb32">-->
+                    <!--    <div t-if="o.pengirim" class="col-3 bm-2">-->
+                    <!--        <strong></strong>-->
+                    <!--<p t-field="o.pengirim" class="m-0"/>-->
+                    <!--    </div>-->
+                    <!--</div>-->
+                    <!--<div id="informations" class="row mt32 mb32">-->
+                    <!--    <div t-if="o.tanggal" class="col-3 bm-2">-->
+                    <!--        <strong>Tanggal:</strong>-->
+                    <!--        <p t-field="o.tanggal" class="m-0"/>-->
+                    <!--    </div>-->
+                    <!--    <div t-if="o.pengirim" class="col-3 bm-2">-->
+                    <!--        <strong>Pengirim:</strong>-->
+                    <!--        <p t-field="o.pengirim" class="m-0"/>-->
+                    <!--    </div>-->
+                    <!--</div>-->
+                    <table class="table table-sm o_main_table">
+                        <thead>
+                            <tr>
+                                <th name="th_description"><strong>No</strong></th>
+                                <th name="th_description"><strong>SO</strong></th>
+                                <th name="th_description"><strong>Nama Toko</strong></th>
+                                <th name="th_description"><strong>Kota</strong></th>
+
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="no" t-value="0" />
+                            <t t-foreach="o.sale_id" t-as="line">
+                                <t t-set="no" t-value="no+1" />
+                                <tr>
+                                    <td><span t-esc="no" /></td>
+                                    <td><span t-esc="line.name" /></td>
+                                    <td><span t-esc="line.partner_id.name" /></td>
+                                    <td><span t-esc="line.accurate_address" /></td>
+                                    <td/>
+                                    <td/>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                        <br></br>
+                        <br></br>
+                    <table class="table table-sm o_main_table">
+                        <thead>
+                            <tr>
+                                <th name="th_description"><strong>No</strong></th>
+                                <th name="th_description"><strong>Nama barang</strong></th>
+                                <th name="th_description"><strong>Qty</strong></th>
+                                <th name="th_description"><strong>DOS</strong></th>
+                                <th name="th_description"><strong>Ceklis</strong></th>
+                                <th name="th_description"><strong>Note</strong></th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="no" t-value="0" />
+                            <t t-foreach="o.rpb_line_ids.filtered(lambda line: line.qty.id == 30)" t-as="line">
+                                <t t-set="no" t-value="no+1" />
+                                <tr>
+                                    <td><span t-esc="no" /></td>
+                                    <!--<td><span t-esc="line.permintaan_ref"/></td>-->
+                                    <!--<td><span t-esc="line.purchase_order_ref"/></td>-->
+                                    <td><span t-esc="line.product_id.name" /></td>
+                                    <td><span t-esc="line.done" /></td>
+                                    <td><span t-esc="line.qty.name" /></td>
+                                    <td/>
+                                    <td/>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                        <br></br>
+                        <br></br>
+                        <table class="table table-sm o_main_table">
+                        <thead>
+                            <tr>
+                                <th name="th_description"><strong>No</strong></th>
+                                <th name="th_description"><strong>Nama barang</strong></th>
+                                <th name="th_description"><strong>Qty</strong></th>
+                                <th name="th_description"><strong>PCS</strong></th>
+                                <th name="th_description"><strong>Ceklis</strong></th>
+                                <th name="th_description"><strong>Note</strong></th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="no" t-value="0" />
+                            <t t-foreach="o.rpb_line_ids.filtered(lambda line: line.qty.id == 31)" t-as="line">
+                                <t t-set="no" t-value="no+1" />
+                                <tr>
+                                    <td><span t-esc="no" /></td>
+                                    <!--<td><span t-esc="line.permintaan_ref"/></td>-->
+                                    <!--<td><span t-esc="line.purchase_order_ref"/></td>-->
+                                    <td><span t-esc="line.product_id.name" /></td>
+                                    <td><span t-esc="line.done" /></td>
+                                    <td><span t-esc="line.qty.name" /></td>
+                                    <td/>
+                                    <td/>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+<!--                    <div class="float-left"-->
+<!--                        style="width: 300px;                                                    padding: 5px;                                                    height: 175px;                                                    border: 1px solid black;                                                    margin: 10px;">-->
+<!--                        <p class="text-left">Catatan :</p>-->
+<!--                    </div>-->
+                    <div class="float-right"
+                        style="width: 150px;                                                     padding: 2px;                                                     height: 175px;                                                     border: 1px solid black;                                                     margin: 10px;">
+                        <p class="text-center">Supir</p>
+                        <hr />
+                        <br></br>
+                        <br></br>
+                        <p class="text-center">(..............................)</p>
+                        <p class="text-center">Nama Supir</p>
+                    </div>
+                    <div class="float-right"
+                        style="width: 150px;                                                     padding: 5px;                                                    height: 175px;                                                     border: 1px solid black;                                                     margin: 10px;">
+                        <p class="text-center">Gudang</p>
+                        <hr />
+                        <br></br>
+                        <br></br>
+                        <p class="text-center">(..............................)</p>
+                        <p class="text-center">Nama Admin</p>
+                    </div>
+
+                </div>
                 </t>
             </t>
     </template>
