@@ -223,7 +223,7 @@ class SaleOrderController(http.Controller):
                     }
 
                     existing_record = request.env['product.template'].search(
-                        [('item_accurate_number', '=', item['no'])])
+                        [('item_accurate_id', '=', item['id'])])
 
                     if not existing_record:
                         data_to_create.append(extracted_item)
@@ -233,7 +233,7 @@ class SaleOrderController(http.Controller):
                             data_to_create = []
                     else:
                         if item['vendorUnit'] is not None:
-                            self.update_avail_stock(item['no'], item['quantity'])
+                            self.update_avail_stock(item['id'], item['quantity'])
 
             if data_to_create:
                 self.create_product_templates(data_to_create)
@@ -318,8 +318,8 @@ class SaleOrderController(http.Controller):
 
         product_template_obj.sudo().create(records_to_create)
 
-    def update_avail_stock(self, item_no, qty):
-        product_template = request.env['product.template'].search([('item_accurate_number', '=', item_no)])
+    def update_avail_stock(self, item_id, qty):
+        product_template = request.env['product.template'].search([('item_accurate_id', '=', item_id)])
 
         if product_template:
             product_id = product_template.product_variant_id.id
