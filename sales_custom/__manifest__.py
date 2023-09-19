@@ -16,7 +16,9 @@
         'views/prb_views.xml',
         'views/rpb_rpb_views.xml',
         'reports/report_rpb.xml',
-        'reports/rpb_format_report.xml'
+        'reports/rpb_format_report.xml',
+        'reports/report_so.xml',
+        'reports/so_format_report.xml',
     ],
     'installable': True,
     'application': True,

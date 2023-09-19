@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <report
+        id="report_so_card"
+        model="stock.picking"
+        string="Print SO"
+        report_type="qweb-pdf"
+        name="sales_custom.report_so"
+        file="sales_custom.report_so"
+        attachment_use = "False"
+    />
+
+</odoo>
