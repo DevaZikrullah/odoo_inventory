@@ -67,10 +67,10 @@ class SaleOrderController(http.Controller):
                         if len(data_to_create) >= batch_size:
                             self.create_user_templates(data_to_create)
                             data_to_create = []
-                    else:
-                        existing_record.write({
-                            'customer_rank': 1
-                        })
+                    #else:
+                    #    existing_record.write({
+                    #        'customer_rank': 1
+                    #    })
 
                 if data_to_create:
                     self.create_user_templates(data_to_create)
@@ -148,7 +148,8 @@ class SaleOrderController(http.Controller):
             record_vals = {
                 'name': item['customer name'],
                 'customer_accurate_id': item['customer id'],
-                'customer_accurate_no': item['customer no']
+                'customer_accurate_no': item['customer no'],
+                'customer_rank' : 1
             }
             records_to_create.append(record_vals)
 
@@ -197,7 +198,7 @@ class SaleOrderController(http.Controller):
         item_adjustment_accurate_in = request.env['stock.picking'].create({
             'name': 'AAI/' + formatted_datetime.replace(' ', '/'),
             'origin': 'AAI/' + formatted_datetime.replace(' ', '/'),
-            'picking_type_id': 7,
+            'picking_type_id': 12,
             'location_id': 14,
             'location_dest_id': 8,
             'state': 'assigned'
@@ -206,7 +207,7 @@ class SaleOrderController(http.Controller):
         item_adjustment_accurate_out = request.env['stock.picking'].create({
             'name': 'AAO/' + formatted_datetime.replace(' ', '/'),
             'origin': 'AAI/' + formatted_datetime.replace(' ', '/'),
-            'picking_type_id': 8,
+            'picking_type_id': 13,
             'location_id': 8,
             'location_dest_id': 14,
             'state': 'assigned'
@@ -364,12 +365,12 @@ class SaleOrderController(http.Controller):
         product_template_obj.sudo().create(records_to_create)
 
     def update_avail_stock(self, item_id, qty, item_adjustment_in_id, item_adjustment_out_id):
-        product_template = request.env['product.template'].search([('item_accurate_id', '=', item_id)])
+        product_template = request.env['product.template'].search([('item_accurate_id', '=', item_id)], limit=1)
         stock_move = request.env['stock.move.line']
 
         if product_template:
             product_id = product_template.product_variant_id.id
-            quant_record = request.env['stock.quant'].search([('product_id', '=', product_id)])
+            quant_record = request.env['stock.quant'].search([('product_id', '=', product_id)], limit=1)
             if qty < quant_record.quantity:
                 # Decrement the available stock quantity
                 print(quant_record.quantity - qty)
@@ -497,7 +498,7 @@ class SaleOrderController(http.Controller):
         if response.status_code == 200:
             data = response.json()
             page_count = data['sp']['pageCount']
-            for page in range(1, page_count):
+            for page in range(1, page_count + 1):
                 data_url = f"{url}&sp.page={page}"
                 response_url = requests.get(data_url, headers=headers)
                 items_url = response_url.json()['d']
@@ -561,7 +562,7 @@ class SaleOrderController(http.Controller):
                                     'product_uom_qty': value['quantity'],
                                     'price_unit': value['unitPrice'],
                                     'order_id': sale_order_data.id,
-                                    'price_tax': 0
+                                    'tax_id': [(5, 0, 0)]
                                 }
                                 sale_order.sudo().create(item)
 
