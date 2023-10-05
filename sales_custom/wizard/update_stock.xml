@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <record id="delivered_wizard_form_view" model="ir.ui.view">
-        <field name="name">mutation.wizard.form</field>
-        <field name="model">mutation.wizard</field>
+    <record id="update_stock_wizard_form_view" model="ir.ui.view">
+        <field name="name">update.stock.wizard.form</field>
+        <field name="model">update.stock.wizard</field>
         <field name="arch" type="xml">
             <form string="form_string">
                 <group>
@@ -10,13 +10,7 @@
                         <field name="product_target"/>
                     </group>
                     <group>
-                        <field name="qty" string="Qty Dos"/>
-                    </group>
-                    <group>
-                        <field name="product_dest"/>
-                    </group>
-                    <group>
-                        <field name="qty_dest" string="Qty Pcs"/>
+                        <field name="qty"/>
                     </group>
                 </group>
                 <footer>
@@ -32,14 +26,14 @@
         </field>
     </record>
 
-    <record id="action_mutation_wizard" model="ir.actions.act_window">
-        <field name="name">Mutasi Barang</field>
-        <field name="res_model">mutation.wizard</field>
+    <record id="action_update_stock_wizard" model="ir.actions.act_window">
+        <field name="name">Barang Masuk</field>
+        <field name="res_model">update.stock.wizard</field>
         <field name="binding_view_types">form</field>
         <field name="view_mode">form</field>
         <field name="target">new</field> <!-- You can use 'new', 'current', or 'fullscreen' as values -->
     </record>
 
-    <menuitem id="menu_mutation" name="Mutasi Barang" action="action_mutation_wizard" parent="stock.menu_stock_config_settings" sequence="2"/>
+    <menuitem id="menu_update_stock" name="Barang Masuk" action="action_update_stock_wizard" parent="stock.menu_stock_config_settings" sequence="2"/>
 
 </odoo>

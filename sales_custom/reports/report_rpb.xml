@@ -8,6 +8,17 @@
         name="sales_custom.report_rpb"
         file="sales_custom.report_rpb"
         attachment_use = "False"
+        print_report_name="'RPB - %s' % object.name"
     />
+    <!-- <record id="action_report_saleorder" model="ir.actions.report">
+        <field name="name">RPB</field>
+        <field name="model">rpb.rpb</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sales_custom.report_rpb</field>
+        <field name="report_file">sales_custom.report_rpb</field>
+        <field name="print_report_name">'RPB - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_sale_order"/>
+        <field name="binding_type">report</field>
+    </record> -->
 
 </odoo>

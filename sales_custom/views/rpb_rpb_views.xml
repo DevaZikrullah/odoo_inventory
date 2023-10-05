@@ -5,6 +5,9 @@
         <field name="model">rpb.rpb.view</field>
         <field name="arch" type="xml">
            <form string="RPB">
+                <header>
+                    <button name="move_update" string="Button for developer" type="object" class="oe_highlight"/>
+                </header>
                <sheet>
                    <group>
                    <field name="product_id" required="1"/>
@@ -20,6 +23,7 @@
                    <field name="vehicle_id" required="1"/>
                    <field name="driver_id" required="1"/>
                    <field name="picking_type_id" required="1"/>
+                   <field name="move_id" readonly="1"/>
                    </group>
 
                </sheet>

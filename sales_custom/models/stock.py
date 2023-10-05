@@ -1,5 +1,5 @@
 from odoo import models, fields, api
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError,AccessError
 from ..controllers import main
 
 
@@ -13,27 +13,45 @@ class StockInh(models.Model):
         ('deliverey', 'To Delivery'), ('done',)])
     temp_storage_show = fields.Boolean()
     is_invoice = fields.Char('Faktur',compute='is_invoices')
-    count_rpb = fields.Integer(compute='_compute_ccount_rpb', store="true")
+    count_rpb = fields.Integer(compute='_compute_ccount_rpb')
+    desc_barang = fields.Char('Desc')
+    city_cust = fields.Char('Kota',compute='address_city')
 
-    @api.depends('address_customer', 'vehicle_id', 'state', 'temp_storage_show', 'count_rpb')
+
+    def redirect_url_accurate(self):
+        raise AccessError('https://account.accurate.id/oauth/authorize?client_id=8de2a1e6-4b1c-4ca2-8898-f0bd18ed0447'
+                          '&response_type=token&redirect_uri=http://localhost:8069/web/assets/aol-oauth-callback'
+                          '&scope=purchase_order_view+item_view+sales_order_view+customer_view+vendor_view')
+
+
+    @api.depends('origin')
+    def address_city(self):
+        for value in self:
+            address = self.env['res.partner'].search(
+                [('name', '=', value.partner_id.id)], limit=1)
+            value.city_cust = address.city
+
+
+
     def _compute_ccount_rpb(self):
-        active_ids = self.env.context.get('active_ids', [])
-        a = self.env['rpb.rpb.view'].search([('stock_picking_id', 'in', self.ids)])
-        list = []
-        for i in a:
-            list.append(i.id)
-        self.count_rpb = len(list)
+        for line in self:
+            a = self.env['rpb.rpb.view'].search([('stock_picking_id', '=', line.id)])
+            list = []
+            for i in a:
+                list.append(i.id)
+            self.count_rpb = len(list)
 
     def action_rpb_tree(self):
         active_ids = self.env.context.get('active_ids', [])
         picking_id = self.env['stock.picking'].search([('id', 'in', active_ids)])
-        self.move_lines._set_quantities_to_reservation()
+        for i in self:
+            i.move_lines._set_quantities_to_reservation()
         list = []
         for i in picking_id:
             list.append(i.state)
         print(list)
-        if any(item != 'assigned' for item in list):
-            raise UserError('Status Harus Ready!')
+        if any(item == 'draft' or item == 'waiting' or item == 'done' or item == 'cancel' for item in list):
+            raise UserError('Status Harus Siap Atau Menunggu!')
             print('l')
         a = self.env['rpb.rpb.view'].search([('stock_picking_id', 'in', active_ids)])
         for d in a:
@@ -80,13 +98,15 @@ class StockInh(models.Model):
 
     def action_count(self):
         active_ids = self.env.context.get('active_ids', [])
-        picking_id = self.env['rpb.rpb.view'].search([('stock_picking_id', 'in', self.ids)])
-        return {
-            "type": 'ir.actions.act_window',
-            "name": 'RPB',
-            "domain": [('id', 'in', picking_id.ids)],
-            "res_model": 'rpb.rpb.view',
-            "view_mode": 'tree,form'}
+        for line in self:
+            # raise UserError(line.id)
+            # picking_id = self.env['rpb.rpb.view'].search([('stock_picking_id', '=', int(line.id))])
+            return {
+                "type": 'ir.actions.act_window',
+                "name": 'RPB',
+                "domain": [('stock_picking_id', '=', line.id)],
+                "res_model": 'rpb.rpb.view',
+                "view_mode": 'tree,form'}
     
     def delivered(self):
         active_ids = self.env.context.get('active_ids', [])
@@ -150,15 +170,16 @@ class StockInh(models.Model):
     def update_product_button(self):
         product = main.SaleOrderController()
         product.get_product_accurate()
+    
+    def update_product_qty_button(self):
+        product = main.SaleOrderController()
+        product.get_product_accurate_qty()
 
     def sync_button(self):
         accurate = main.SaleOrderController()
-        # print(self.ids)
         data = self.env['stock.picking'].search([('id', '=', self.ids)])
-        so = self.env['sale.order'].search[(['name','=',data.origin])]
-        print()
-        # accurate.accurate_so_sync()
-        # print('mantap')
+        so = self.env['sale.order'].search([('name', '=', data.origin)])
+        accurate.accurate_so_sync(so.id,so.item_accurate_id)
 
 class flettVolume(models.Model):
     _inherit = 'fleet.vehicle'

@@ -51,6 +51,8 @@ class SaleOrderController(http.Controller):
                 data_url = f"{url}&sp.page={page}"
                 response_url = requests.get(data_url, headers=headers)
                 items_url = response_url.json()['d']
+
+
                 for item in items_url:
                     extracted_item = {
                         'customer name': item['name'],
@@ -67,10 +69,11 @@ class SaleOrderController(http.Controller):
                         if len(data_to_create) >= batch_size:
                             self.create_user_templates(data_to_create)
                             data_to_create = []
-                    #else:
-                    #    existing_record.write({
-                    #        'customer_rank': 1
-                    #    })
+
+                    # else:
+                    #     existing_record.write({
+                    #         'customer_rank': 1
+                    #     })
 
                 if data_to_create:
                     self.create_user_templates(data_to_create)
@@ -198,7 +201,7 @@ class SaleOrderController(http.Controller):
         item_adjustment_accurate_in = request.env['stock.picking'].create({
             'name': 'AAI/' + formatted_datetime.replace(' ', '/'),
             'origin': 'AAI/' + formatted_datetime.replace(' ', '/'),
-            'picking_type_id': 12,
+            'picking_type_id': 7,
             'location_id': 14,
             'location_dest_id': 8,
             'state': 'assigned'
@@ -206,8 +209,8 @@ class SaleOrderController(http.Controller):
 
         item_adjustment_accurate_out = request.env['stock.picking'].create({
             'name': 'AAO/' + formatted_datetime.replace(' ', '/'),
-            'origin': 'AAI/' + formatted_datetime.replace(' ', '/'),
-            'picking_type_id': 13,
+            'origin': 'AAO/' + formatted_datetime.replace(' ', '/'),
+            'picking_type_id': 8,
             'location_id': 8,
             'location_dest_id': 14,
             'state': 'assigned'
@@ -215,7 +218,68 @@ class SaleOrderController(http.Controller):
 
         return item_adjustment_accurate_in, item_adjustment_accurate_out
 
-    @http.route('/api/accurate-product', type='http', auth="public")
+    def get_product_accurate_qty(self):
+        access_token = self.get_access_token()['access_token']
+        session = self.open_db_accurate(access_token)['session']
+        url = "https://zeus.accurate.id/accurate/api/item/list.do?fields=id,name,no,quantity,vendorUnit&sp.pageSize=100"
+
+        item_adjustment_accurate_in, item_adjustment_accurate_out = self.create_item_adjustment_records()
+
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'X-Session-ID': session
+        }
+
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            data = response.json()
+            page_count = data['sp']['pageCount']
+            current_datetime = datetime.datetime.now()
+
+            for page in range(1, page_count + 1):
+                data_url = f"{url}&sp.page={page}"
+                response_url = requests.get(data_url, headers=headers)
+                items_url = response_url.json()['d']
+
+                for item in items_url:
+                    extracted_item = {
+                        'Item ID': item['id'],
+                        'Item Name': item['name'],
+                        'Item Number': item['no'],
+                        'Item Stock': item['quantity'],
+                        'Item Uom': item['vendorUnit']['name'] if 'vendorUnit' in item and item['vendorUnit'] else 'PCS'
+                    }
+
+                    existing_record = request.env['product.template'].search(
+                        [('item_accurate_number', '=', item['no'])])
+
+                    if existing_record:
+                        if item['vendorUnit'] is not None:
+                            self.update_avail_stock(item['id'], item['quantity'], item_adjustment_accurate_in,
+                                                    item_adjustment_accurate_out)
+
+            if item_adjustment_accurate_out and item_adjustment_accurate_out.move_lines:
+                item_adjustment_accurate_out.write({
+                    'state': 'assigned'
+                })
+            elif item_adjustment_accurate_in and item_adjustment_accurate_in.move_lines:
+                item_adjustment_accurate_in.write({
+                    'state': 'assigned'
+                })
+            elif item_adjustment_accurate_in and not item_adjustment_accurate_in.move_lines:
+                item_adjustment_accurate_in.unlink()
+            elif item_adjustment_accurate_out and not item_adjustment_accurate_out.move_lines:
+                item_adjustment_accurate_out.unlink()
+
+            return {
+                'item': data['d'],
+            }
+        else:
+            return {
+                'error': f"Error: {response.status_code}"
+            }
+
     def get_product_accurate(self):
         access_token = self.get_access_token()['access_token']
         session = self.open_db_accurate(access_token)['session']
@@ -250,7 +314,7 @@ class SaleOrderController(http.Controller):
                         'Item ID': item['id'],
                         'Item Name': item['name'],
                         'Item Number': item['no'],
-                        'Item Stock': item['quantity'],
+                        # 'Item Stock': item['quantity'],
                         'Item Uom': item['vendorUnit']['name'] if 'vendorUnit' in item and item['vendorUnit'] else 'PCS'
                     }
 
@@ -263,23 +327,7 @@ class SaleOrderController(http.Controller):
                         if len(data_to_create) >= batch_size:
                             self.create_product_templates(data_to_create)
                             data_to_create = []
-                    else:
-                        if item['vendorUnit'] is not None:
-                            self.update_avail_stock(item['id'], item['quantity'], item_adjustment_accurate_in,
-                                                    item_adjustment_accurate_out)
 
-            if item_adjustment_accurate_out and item_adjustment_accurate_out.move_lines:
-                item_adjustment_accurate_out.write({
-                    'state': 'assigned'
-                })
-            elif item_adjustment_accurate_in and item_adjustment_accurate_in.move_lines:
-                item_adjustment_accurate_in.write({
-                    'state': 'assigned'
-                })
-            elif item_adjustment_accurate_in and not item_adjustment_accurate_in.move_lines:
-                item_adjustment_accurate_in.unlink()
-            elif item_adjustment_accurate_out and not item_adjustment_accurate_out.move_lines:
-                item_adjustment_accurate_out.unlink()
 
             if data_to_create:
                 self.create_product_templates(data_to_create)
@@ -365,36 +413,40 @@ class SaleOrderController(http.Controller):
         product_template_obj.sudo().create(records_to_create)
 
     def update_avail_stock(self, item_id, qty, item_adjustment_in_id, item_adjustment_out_id):
-        product_template = request.env['product.template'].search([('item_accurate_id', '=', item_id)], limit=1)
+        product_template = request.env['product.template'].search([('item_accurate_id', '=', item_id)],limit=1)
         stock_move = request.env['stock.move.line']
 
         if product_template:
-            product_id = product_template.product_variant_id.id
-            quant_record = request.env['stock.quant'].search([('product_id', '=', product_id)], limit=1)
+            quant_record = request.env['stock.quant'].search([
+                ('product_id', '=', int(product_template))
+            ], limit=1, order='id desc')
+
             if qty < quant_record.quantity:
                 # Decrement the available stock quantity
-                print(quant_record.quantity - qty)
                 stock_move.create({
-                    'product_id': product_id,
-                    'product_uom_qty': int(quant_record.quantity - qty),
+                    'product_id': int(product_template),
                     'picking_id': item_adjustment_out_id.id,
                     'product_uom_id': product_template.uom_id.id,
                     'location_id': item_adjustment_out_id.location_id.id,
                     'location_dest_id': item_adjustment_out_id.location_dest_id.id,
                     'qty_done': quant_record.quantity - qty,
                 })
+                print(stock_move)
+                print('out')
             elif qty > quant_record.quantity:
-                print(qty - quant_record.quantity)
                 stock_move.create({
-                    'product_id': product_id,
-                    'product_uom_qty': int(qty - quant_record.quantity),
+                    'product_id': int(product_template),
                     'picking_id': item_adjustment_in_id.id,
                     'product_uom_id': product_template.uom_id.id,
+                    'product_uom_qty': quant_record.quantity - qty,
                     'location_id': item_adjustment_in_id.location_id.id,
                     'location_dest_id': item_adjustment_in_id.location_dest_id.id,
                     'qty_done': qty - quant_record.quantity,
                 })
-
+                print(stock_move)
+                print('in')
+            elif qty == quant_record.quantity:
+                pass
 
     def open_db_accurate(self, access_token):
         url = 'https://account.accurate.id/api/open-db.do?id=683745'
@@ -531,65 +583,101 @@ class SaleOrderController(http.Controller):
                         status = ''
                         if data['statusName'] == 'Menunggu diproses':
                             status = 'Belum Difakturkan'
-                        elif data['statusName'] == 'Terproses':
-                            status = 'Sudah Difakturkan'
-                        print(data_cust)
-                        formatted_data = {
-                            'name': data['number'],
-                            'date_order': ymd_date,
-                            'item_accurate_id': data['id'],
-                            'customer': data['customer']['name'],
-                            'partner_id': int(data_cust),
-                            'accurate_address': data['toAddress'],
-                            'has_been_invoiced': status,
-                            'state': 'sale'
-                        }
 
-                        records_so_create.append(formatted_data)
+                            formatted_data = {
+                                'name': data['number'],
+                                'date_order': ymd_date,
+                                'item_accurate_id': data['id'],
+                                'customer': data['customer']['name'],
+                                'partner_id': int(data_cust),
+                                'accurate_address': data['toAddress'],
+                                'has_been_invoiced': status,
+                                'state': 'sale'
+                            }
 
-                        existing_record = sale.search(
-                            [('item_accurate_id', '=', data['id'])])
+                            records_so_create.append(formatted_data)
 
-                        if not existing_record:
-                            sale_order_data = sale.sudo().create(formatted_data)
+                            existing_record = sale.search(
+                                [('item_accurate_id', '=', data['id'])])
 
-                            for value in data['detailItem']:
-                                product_id = product.search(
-                                    [('item_accurate_id', '=', value['itemId'])])
-                                item = {
-                                    'product_id': product_id.id,
-                                    'name': value['detailName'],
-                                    'product_uom_qty': value['quantity'],
-                                    'price_unit': value['unitPrice'],
-                                    'order_id': sale_order_data.id,
-                                    'tax_id': [(5, 0, 0)]
-                                }
-                                sale_order.sudo().create(item)
+                            if not existing_record:
+                                sale_order_data = sale.sudo().create(formatted_data)
 
-                            _logger.info("Background function finished")
+                                for value in data['detailItem']:
+                                    product_id = product.search(
+                                        [('item_accurate_id', '=', value['itemId'])],limit=1)
+                                    item = {
+                                        'product_id': product_id.id,
+                                        'name': value['detailName'],
+                                        'product_uom_qty': value['quantity'],
+                                        'price_unit': value['unitPrice'],
+                                        'order_id': sale_order_data.id,
+                                        'tax_id': [(5, 0, 0)]
+                                    }
+                                    sale_order.sudo().create(item)
+
+                                _logger.info("Background function finished")
         return {
             'data': records_so_create
         }
 
-    # def accurate_so_sync(self, id_so):
-    #     access_token = self.get_access_token()['access_token']
-    #     session = self.open_db_accurate(access_token)['session']
-    #     url_item = f'https://zeus.accurate.id/accurate/api/sales-invoice/detail.do?id={id_so}'
-    #
-    #     headers = {
-    #         'Authorization': f'Bearer {access_token}',
-    #         'X-Session-ID': session
-    #     }
-    #
-    #     response = requests.get(url_item, headers=headers)
-    #     if response.status_code == 200:
-    #         data = response.json()['d']
-    #         for value in data['detailItem']:
-    #             item = {
-    #                 'product_id': product_id.id,
-    #                 'name': value['detailName'],
-    #                 'product_uom_qty': value['quantity'],
-    #                 'price_unit': value['unitPrice'],
-    #                 'order_id': sale_order_data.id,
-    #                 'price_tax': 0
-    #             }
+    def accurate_so_sync(self, id_so,id_so_accurate):
+        access_token = self.get_access_token()['access_token']
+        session = self.open_db_accurate(access_token)['session']
+        product = request.env['product.template']
+        print(access_token)
+        print(session)
+        sale_order_line = request.env['sale.order.line']
+        url_item = f'https://zeus.accurate.id/accurate/api/sales-order/detail.do?id={id_so_accurate}'
+
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'X-Session-ID': session
+        }
+
+        sale_order = request.env['sale.order'].search([('id', '=', id_so)])
+
+        if sale_order:
+            response = requests.get(url_item, headers=headers)
+            sale_order.action_cancel()
+            sale_order.order_line.unlink()
+            if response.status_code == 200:
+                data = response.json()['d']
+                for value in data['detailItem']:
+                    product_id = product.search(
+                        [('item_accurate_id', '=', value['itemId'])])
+                    item = {
+                        'product_id': product_id.id,
+                        'name': value['detailName'],
+                        'product_uom_qty': value['quantity'],
+                        'price_unit': value['unitPrice'],
+                        'order_id': sale_order.id,
+                        'tax_id': [(5, 0, 0)]
+                    }
+                    sale_order_line.sudo().create(item)
+
+            sale_order.action_draft()
+            sale_order.action_confirm()
+
+
+class CustomReportController(http.Controller):
+    @http.route('/custom_report_download/<int:record_id>/', type='http', auth="public")
+    def custom_report_download(self, record_id, **kw):
+        Model = request.env['rpb.rpb']
+        record = Model.browse(record_id)
+
+        if record:
+            pdf_content = record._render_qweb_pdf([record.id])[0]
+            file_name = f"{record.field_name_for_filename}.pdf"
+
+            response = request.make_response(
+                pdf_content,
+                [('Content-Type', 'application/pdf')],
+            )
+            response.headers['Content-Disposition'] = http.content_disposition(file_name)
+
+            return response
+        else:
+            return request.not_found()
+
+

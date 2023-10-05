@@ -1,7 +1,7 @@
 from odoo import models, fields, api
 from odoo.exceptions import UserError
 import random
-
+import datetime
 
 class wizardRpb(models.TransientModel):
     _name = 'wizard.rpb'
@@ -137,17 +137,23 @@ class wizardRpb(models.TransientModel):
                 res = 'Available'
                 if i.forecast_availability < 1:
                     res = 'Not Available'
+                deadline = ''
+                scdule = ''
+                if i.date_deadline:
+                    deadline = i.date_deadline
+                if i.date:
+                    scdule = i.date
                 data = {
                     'id': int(i.id),
-                    'name': str(i.name),
-                    'product_id': int(i.product_id),
-                    'description': str(i.description_picking),
-                    'date_scheduled': str(i.date),
-                    'deadline': str(i.date_deadline),
-                    'demand': i.product_uom_qty,
-                    'reserved': res,
-                    'done': i.quantity_done,
-                    'qty': i.product_uom
+                    'name': str(i.name) or '',
+                    'product_id': int(i.product_id) or 0,
+                    'description': str(i.description_picking) or '',
+                    'date_scheduled': str(scdule) or '',
+                    'deadline': str(deadline) or '',
+                    'demand': i.product_uom_qty or 0,
+                    'reserved': res or 0,
+                    'done': i.quantity_done or 0,
+                    'qty': i.product_uom or 0
                 }
                 list.append((0, 0, data))
             else:
@@ -155,8 +161,6 @@ class wizardRpb(models.TransientModel):
                     if it[2]['product_id'] == i.product_id.id:
                         it[2]['demand'] += i.product_uom_qty
                         it[2]['done'] += i.quantity_done
-
-        print(list)
         self.rpb_line_id = list
         self.picking_type_id = 2
         # self.picking_type_id = int(stock_picking.picking_type_id)
@@ -176,15 +180,21 @@ class wizardRpb(models.TransientModel):
             b += int(self.env['product.template'].search([('id', '=', i.product_id.product_tmpl_id.id)]).volume) * int(
                 i.done)
         for save in stock_move:
+            deadline = datetime.datetime.now()
+            scdule = datetime.datetime.now()
+            if save.date_deadline:
+                deadline = save.date_deadline
+            if save.date:
+                scdule = save.date
             list_rpb_view.append({
                 "name": ''+str(self.name)+'/'+str(self.id)+'',
                 "stock_picking_id": int(save.picking_id),
                 "source_document_id": int(save.picking_id.sale_id),
                 "product_id": int(save.product_id),
                 "description": save.description_picking,
-                "date_scheduled": save.date,
+                "date_scheduled": str(scdule),
                 'total_volume_product' : b,
-                "deadline": save.date_deadline,
+                "deadline": str(deadline),
                 "demand": save.product_uom_qty,
                 "reserved": save.forecast_availability,
                 "done": save.quantity_done,
@@ -209,6 +219,12 @@ class wizardRpb(models.TransientModel):
         list = []
         for j in stock_move:
             if not any(item[2]['product_id'] == j.product_id.id for item in list):
+                deadline = datetime.datetime.now()
+                scdule = datetime.datetime.now()
+                if j.date_deadline:
+                    deadline = j.date_deadline
+                if j.date:
+                    scdule = j.date
                 res = 'Available'
                 if j.forecast_availability < 1:
                     res = 'Not Available'
@@ -216,8 +232,8 @@ class wizardRpb(models.TransientModel):
                     'name': str(j.name),
                     'product_id': int(j.product_id),
                     'description': str(j.description_picking),
-                    'date_scheduled': str(j.date),
-                    'deadline': str(j.date_deadline),
+                    'date_scheduled': str(scdule) ,
+                    'deadline': str(deadline),
                     'demand': j.product_uom_qty,
                     'reserved': j.forecast_availability,
                     'done': j.quantity_done,
@@ -275,6 +291,12 @@ class wizardRpbLine(models.TransientModel):
     done = fields.Float()
     qty = fields.Many2one('uom.uom', string="Uom")
     rpb_id = fields.Many2one('wizard.rpb')
+    lack_qty = fields.Float('Kekurangan', compute='_compute_lack_qty', store=True)
+
+    @api.depends('demand', 'done')
+    def _compute_lack_qty(self):
+        for record in self:
+            record.lack_qty = record.demand - record.done
 
 
 class employeeOrker(models.TransientModel):

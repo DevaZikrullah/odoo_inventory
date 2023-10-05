@@ -19,6 +19,8 @@
         'reports/rpb_format_report.xml',
         'reports/report_so.xml',
         'reports/so_format_report.xml',
+        'wizard/mutation_views.xml',
+        'wizard/update_stock.xml',
     ],
     'installable': True,
     'application': True,
