@@ -3,7 +3,7 @@
     <report
         id="report_so_card"
         model="stock.picking"
-        string="Print SO"
+        string="Print DO"
         report_type="qweb-pdf"
         name="sales_custom.report_so"
         file="sales_custom.report_so"
