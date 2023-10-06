@@ -44,38 +44,43 @@ class StockInh(models.Model):
     def action_rpb_tree(self):
         active_ids = self.env.context.get('active_ids', [])
         picking_id = self.env['stock.picking'].search([('id', 'in', active_ids)])
-        for i in self:
-            i.move_lines._set_quantities_to_reservation()
-        list = []
-        for i in picking_id:
-            list.append(i.state)
-        print(list)
-        if any(item == 'draft' or item == 'waiting' or item == 'done' or item == 'cancel' for item in list):
-            raise UserError('Status Harus Siap Atau Menunggu!')
-            print('l')
-        a = self.env['rpb.rpb.view'].search([('stock_picking_id', 'in', active_ids)])
-        for d in a:
-            if d:
-                raise UserError('RPB sudah dibuat')
 
-        else:
-            return {
-                'type': 'ir.actions.act_window',
-                'name': 'Create RPB',
-                'res_model': 'wizard.rpb',
-                'view_type': 'form',
-                'view_mode': 'form',
-                'target': 'new',
-            }
+        # Issue 1: 'list' variable should not be shadowed
+        status_list = []  # Renamed 'list' to 'status_list'
+        for i in picking_id:
+            status_list.append(i.state)
+
+        # Issue 2: The condition should be 'or', not 'or' in list
+        if any(item in ['draft', 'waiting', 'done', 'cancel'] for item in status_list):
+            raise UserError('Status Harus Siap Atau Menunggu!')
+
+        a = self.env['rpb.rpb.view'].search([('stock_picking_id', 'in', active_ids)])
+
+        # Issue 3: Correct the condition for 'state_rpb'
+        if any(d.state_rpb in ['being_delivered', 'already_sent'] for d in a):
+            raise UserError('RPB sudah dibuat')
+
+        # Issue 4: Use 'return' to open a new form view
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Create RPB',
+            'res_model': 'wizard.rpb',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'target': 'new',
+        }
 
     def action_rpb_form(self):
         print(self.count_rpb)
         active_ids = self.env.context.get('active_ids', [])[0]
         self.move_lines._set_quantities_to_reservation()
         a = self.env['rpb.rpb.view'].search([('stock_picking_id', '=', int(self.id))])
+        print(a)
+        exit()
         if a:
             raise UserError('RPB sudah dibuat')
         else:
+
             return {
                 'type': 'ir.actions.act_window',
                 'name': 'Create RPB',

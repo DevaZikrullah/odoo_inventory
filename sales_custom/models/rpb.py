@@ -98,12 +98,27 @@ class rpbModelView(models.Model):
     driver_id = fields.Many2one('res.partner')
     picking_type_id = fields.Many2one('stock.picking.type')
     state_rpb = fields.Selection([
-        ('draft', 'Draft'),
-        ('post', 'Post')
-    ], default="draft")
+        ('being_delivered', 'Sedang Terkirim'),
+        ('failed_to_send', 'Gagal Terkirim'),
+        ('already_sent', 'Sudah Terkirim'),
+    ], default="being_delivered")
     move_id = fields.Many2one('stock.move')
 
+    def state_progress_failed_to_send(self):
+        active_ids = self.env.context.get('active_ids', [])
+        for value in active_ids:
+            # print(value)
+            self.env['rpb.rpb.view'].search([('id', '=', value)]).write({
+                'state_rpb': 'failed_to_send'
+            })
 
+    def state_progress_already_sent(self):
+        active_ids = self.env.context.get('active_ids', [])
+        for value in active_ids:
+            # print(value)
+            self.env['rpb.rpb.view'].search([('id', '=', value)]).write({
+                'state_rpb': 'already_sent'
+            })
     def _compute_demand(self):
         for line in self:
             picking = self.env['stock.move'].search([('id', '=', line.move_id.id)])

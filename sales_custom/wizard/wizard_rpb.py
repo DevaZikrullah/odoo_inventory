@@ -177,8 +177,7 @@ class wizardRpb(models.TransientModel):
         jumlah_barang_b = self.rpb_line_id
         b = 0
         for i in jumlah_barang_b:
-            b += int(self.env['product.template'].search([('id', '=', i.product_id.product_tmpl_id.id)]).volume) * int(
-                i.done)
+            b += int(self.env['product.template'].search([('id', '=', i.product_id.product_tmpl_id.id)]).volume) * int(i.done)
         for save in stock_move:
             deadline = datetime.datetime.now()
             scdule = datetime.datetime.now()
@@ -201,7 +200,8 @@ class wizardRpb(models.TransientModel):
                 "uom": save.product_uom.id,
                 "vehicle_id": self.vehicle_id.id,
                 "driver_id": self.driver_id.id,
-                "picking_type_id": self.picking_type_id.id
+                "picking_type_id": self.picking_type_id.id,
+                "state_rpb":'being_delivered'
             })
         rpb_list.create(list_rpb_view)
         jumlah_barang = self.rpb_line_id

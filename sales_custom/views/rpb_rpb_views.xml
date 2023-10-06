@@ -36,14 +36,15 @@
         <field name="model">rpb.rpb.view</field>
         <field name="arch" type="xml">
             <tree>
-                   <field name="name"/>
-                   <field name="product_id"/>
-                   <field name="source_document_id"/>
-                   <field name="date_scheduled"/>
-                   <field name="done"/>
-                   <field name="driver_id" />
-                   <field name="vehicle_id" />
-                   <field name="uom"/>
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="source_document_id"/>
+                <field name="date_scheduled"/>
+                <field name="done"/>
+                <field name="driver_id" />
+                <field name="vehicle_id" />
+                <field name="uom"/>
+                <field name="state_rpb"/>
             </tree>
         </field>
     </record>
@@ -55,6 +56,31 @@
         <field name="view_mode">tree,form</field>
         <field name="view_id" ref="rpb_rpb_view_view_tree"/>
     </record>
+
+    <record id="ir_actions_server_custom_rpb_progress" model="ir.actions.server">
+        <field name="name">Terkirim</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_rpb_rpb_view"/>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.state_progress_already_sent()
+        </field>
+        <field name="binding_model_id" ref="sales_custom.model_rpb_rpb_view"/>
+    </record>
+
+    <record id="ir_actions_server_custom_rpb_progress_failed_to_send" model="ir.actions.server">
+        <field name="name">Gagal Terkirim</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_rpb_rpb_view"/>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.state_progress_failed_to_send()
+        </field>
+        <field name="binding_model_id" ref="sales_custom.model_rpb_rpb_view"/>
+    </record>
+
     <menuitem id="menu_rpb_view_list" name="REPORT RPB" parent="menu_rpb" action="rpb_rpb_view_action" sequence="3"/>
 
 
