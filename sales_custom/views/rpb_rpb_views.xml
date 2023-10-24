@@ -70,7 +70,7 @@
     </record>
 
     <record id="ir_actions_server_custom_rpb_progress_failed_to_send" model="ir.actions.server">
-        <field name="name">Gagal Terkirim</field>
+        <field name="name">Pending</field>
         <field name="type">ir.actions.server</field>
         <field name="model_id" ref="model_rpb_rpb_view"/>
         <field name="state">code</field>

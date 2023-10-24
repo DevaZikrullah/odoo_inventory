@@ -1,6 +1,8 @@
 from odoo import models, fields, api
 from odoo.exceptions import UserError,AccessError
 from ..controllers import main
+from terbilang import Terbilang
+
 
 
 class StockInh(models.Model):
@@ -30,6 +32,11 @@ class StockInh(models.Model):
             address = self.env['res.partner'].search(
                 [('name', '=', value.partner_id.id)], limit=1)
             value.city_cust = address.city
+
+    def convert_amount_to_words(self):
+        t = Terbilang()
+        t.parse(int(self.sale_id.amount_total))
+        return t.getresult()
 
 
 

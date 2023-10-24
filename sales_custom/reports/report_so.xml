@@ -8,6 +8,7 @@
         name="sales_custom.report_so"
         file="sales_custom.report_so"
         attachment_use = "False"
+        print_report_name="'DO - %s' % object.name"
     />
 
 </odoo>

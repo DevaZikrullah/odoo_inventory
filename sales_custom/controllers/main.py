@@ -5,6 +5,7 @@ import odoo
 from odoo import http
 from odoo.http import request, _logger
 from requests.auth import HTTPBasicAuth
+from odoo.exceptions import UserError
 import datetime
 import threading
 
@@ -17,18 +18,10 @@ class SaleOrderController(http.Controller):
         # cust = self.get_customer(access_token,session)
         # product = self.get_product_accurate(access_token, session)
         self.get_so_accurate(access_token, session, date_from, date_to)
-        print(access_token)
-        print(session)
         return {
             'status': 200,
             'data': 'sucess'
         }
-        #
-        # return {
-        #     'status': 200,
-        #     'token': access_token,
-        #     'session': session
-        # }
 
     def get_customer(self):
         access_token = self.get_access_token()['access_token']
@@ -183,8 +176,11 @@ class SaleOrderController(http.Controller):
         last_part = url_parts[-1].split("&")
         result_array = url_parts[:-1] + last_part
         for index, value in enumerate(result_array):
-            if index == 5:
-                access_token = value.split("#")[1].replace("access_token=", "")
+            try:
+                if index == 5:
+                    access_token = value.split("#")[1].replace("access_token=", "")
+            except:
+                raise UserError('Register Accurate Terlebih Dahulu')
 
         response_data = {
             'access_token': access_token,
@@ -327,6 +323,11 @@ class SaleOrderController(http.Controller):
                         if len(data_to_create) >= batch_size:
                             self.create_product_templates(data_to_create)
                             data_to_create = []
+                    elif existing_record:
+                        existing_record.write({
+                            'name': item['name'],
+                            'item_accurate_number': item['no']
+                        })
 
 
             if data_to_create:
@@ -575,7 +576,6 @@ class SaleOrderController(http.Controller):
 
                         result = 'unknown' if int(customer_id) == 0 else int(customer_id)
                         data_cust = result
-                        print(result)
                         if result == 'unknown':
                             data_cust = request.env['res.partner'].search(
                                 [('name', '=', result)], limit=1)
@@ -583,6 +583,13 @@ class SaleOrderController(http.Controller):
                         status = ''
                         if data['statusName'] == 'Menunggu diproses':
                             status = 'Belum Difakturkan'
+
+                            salesman_so = ''
+
+                            for value in data['detailItem']:
+                                for salesman in value['salesmanList']:
+                                    salesman_so = salesman['name']
+
 
                             formatted_data = {
                                 'name': data['number'],
@@ -592,7 +599,8 @@ class SaleOrderController(http.Controller):
                                 'partner_id': int(data_cust),
                                 'accurate_address': data['toAddress'],
                                 'has_been_invoiced': status,
-                                'state': 'sale'
+                                'state': 'sale',
+                                'salesman' : salesman_so
                             }
 
                             records_so_create.append(formatted_data)
@@ -604,8 +612,15 @@ class SaleOrderController(http.Controller):
                                 sale_order_data = sale.sudo().create(formatted_data)
 
                                 for value in data['detailItem']:
+                                    for salesman in value['salesmanList']:
+                                        sale.write({
+                                            'salesman': salesman['name']
+                                        })
+                                        print(salesman['name'])
+
+
                                     product_id = product.search(
-                                        [('item_accurate_id', '=', value['itemId'])],limit=1)
+                                        [('item_accurate_id', '=', value['itemId'])], limit=1)
                                     item = {
                                         'product_id': product_id.id,
                                         'name': value['detailName'],
@@ -620,6 +635,7 @@ class SaleOrderController(http.Controller):
         return {
             'data': records_so_create
         }
+
 
     def accurate_so_sync(self, id_so,id_so_accurate):
         access_token = self.get_access_token()['access_token']

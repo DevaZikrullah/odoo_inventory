@@ -11,3 +11,5 @@ class SaleOrder(models.Model):
     no_accurate = fields.Char()
     accurate_address = fields.Char()
     has_been_invoiced = fields.Char()
+    salesman = fields.Char()
+

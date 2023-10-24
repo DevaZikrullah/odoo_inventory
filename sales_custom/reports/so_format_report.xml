@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="report_so">
         <t t-call="web.html_container">
@@ -7,48 +6,45 @@
                     <div class="page">
                         <div class="oe_structure" />
                         <div class="row">
-                            <div class="col-8">
-                                <h2>#<span t-field="o.origin" /></h2>
-                                <div id="informations" class="row">
-                                    <div class="d-flex col-5 bm-2">
-                                        <div class="mr-1">
-                                            <strong>Tanggal :</strong>
+                            <div class="col-6">
+                                <div class="col-md-2" style="display: flex; flex-direction: column; align-items: flex-start;">
+                                    <p>Surabaya, <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d')"/></p>
+                                    <p>Kepada :</p>
+                                    <div class="d-flex">
+                                        <p t-field="o.partner_id" />
+                                    </div>
+                                    <div class="d-flex">
+                                        <p t-field="o.address_customer" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="border p-1">
+                                            <p class="text-center">Delivery Order</p>
+                                            <p t-field="o.name" class="m-0 text-center"/>
                                         </div>
-                                        <div>
-                                            <p t-field="o.date_deadline" class="m-0" />
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="border p-1">
+                                            <p class="text-center">Sales Order</p>
+                                            <p t-field="o.origin" class="m-0 text-center"/>
                                         </div>
                                     </div>
                                 </div>
-                                <div id="informations" class="row">
-                                    <div class="d-flex col-7 bm-2">
-                                        <div class="mr-1">
-                                            <strong>Customer :</strong>
-                                        </div>
-                                        <div>
-                                            <p t-field="o.partner_id" class="m-0" />
+                                <div class="row justify-content-around">
+                                    <div class="col-6">
+                                        <div class="border p-1">
+                                            <p class="text-center">Ekspedisi</p>
+                                            <br></br>
                                         </div>
                                     </div>
-                                </div>
-                                <div id="informations" class="row">
-                                    <div class="d-flex col-5 bm-2">
-                                        <div class="mr-1">
-                                            <strong>Tanggal :</strong>
-                                        </div>
-                                        <div>
-                                            <p t-field="o.origin" class="m-0" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div id="informations" class="row">
-                                    <div class="d-flex col-5 bm-2">
-                                        <div class="mr-1">
-                                            <strong>Total : </strong>
-                                        </div>
-                                        <div>
-                                            <t t-set="no" t-value="0" />
-                                            <t t-foreach="o.sale_id" t-as="line">
-                                                <t t-esc="'{0:,.2f}'.format(int(line.amount_total))" />
-                                            </t>
+                                    <!-- Second column, second row -->
+                                    <div class="col-6">
+                                        <div class="border p-1">
+                                            <p class="text-center">Penjual</p>
+                                            <p t-field="o.sale_id.salesman" class="m-0 text-center"/>
                                         </div>
                                     </div>
                                 </div>
@@ -59,19 +55,18 @@
                         <br></br>
 
                         <table class="table table-sm o_main_table">
-                             <thead>
-                                <tr>
-                                    <th name="th_description"><strong>No</strong></th>
-                                    <th name="th_description"><strong>Kode Barang</strong></th>
-                                    <th name="th_description"><strong>Nama Barang</strong></th>
-                                    <th name="th_description"><strong>Qty</strong></th>
-                                    <th name="th_description"><strong>UOM</strong></th>
-                                    <th name="th_description"><strong>Harga</strong></th>
-                                    <th name="th_description"><strong>Total Harga</strong></th>
-                                </tr>
-                            </thead>
                             <tbody>
+                                <tr>
+                                    <td><strong>No</strong></td>
+                                    <td><strong>Kode Barang</strong></td>
+                                    <td><strong>Nama Barang</strong></td>
+                                    <td><strong>Qty</strong></td>
+                                    <td><strong>UOM</strong></td>
+                                    <td><strong>Harga</strong></td>
+                                    <td><strong>Total Harga</strong></td>
+                                </tr>
                                 <t t-set="no" t-value="0" />
+                                <t t-set="total_harga" t-value="0" />
                                 <t t-foreach="o.sale_id.order_line" t-as="line">
                                     <t t-set="no" t-value="no+1" />
                                     <tr>
@@ -82,15 +77,61 @@
                                         <td><span t-esc="line.product_id.uom_id.name" /></td>
                                         <td><span t-esc="'{0:,.2f}'.format(int(line.price_unit))"/></td>
                                         <td><span t-esc="'{0:,.2f}'.format(int(line.price_subtotal))" /></td>
+                                        <t t-set="total_harga" t-value="total_harga + line.price_subtotal" />
                                     </tr>
                                 </t>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Sub Total</strong></td>
+                                    <td><span t-esc="'{0:,.2f}'.format(int(o.sale_id.amount_untaxed))" /></td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Diskon</strong></td>
+                                    <td><span t-esc="'{0:,.2f}'.format(int(o.sale_id.amount_tax))" /></td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Biaya Lain Lain</strong></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Total</strong></td>
+                                    <td><span t-esc="'{0:,.2f}'.format(int(o.sale_id.amount_total))" /></td>
+                                </tr>
+                                 <tr>
+                                     <td></td>
+                                     <td><strong>Terbilang</strong></td>
+                                     <td><span t-esc="o.convert_amount_to_words()" /></td>
+                                     <td></td>
+                                     <td></td>
+                                     <td></td>
+                                </tr>
                             </tbody>
                         </table>
 
+                        <h1 ></h1>
                         <br></br>
                         <br></br>
                         <div class="float-right"
-                            style="width: 190px;                                                     padding: 5px;                                                    height: 175px;                                                     border: 1px solid black;                                                     margin: 10px;">
+                            style="width: 190px; padding: 5px; height: 175px; border: 1px solid black; margin: 10px;">
                             <p class="text-center">Admin Gudang</p>
                             <hr />
                             <br></br>
@@ -99,7 +140,7 @@
                             <p class="text-center">Nama Jelas</p>
                         </div>
                         <div class="float-right"
-                            style="width: 190px;                                                     padding: 5px;                                                     height: 175px;                                                     border: 1px solid black;                                                     margin: 10px;">
+                            style="width: 190px; padding: 5px; height: 175px; border: 1px solid black; margin: 10px;">
                             <p class="text-center">Pengirim</p>
                             <hr />
                             <br></br>
@@ -108,7 +149,7 @@
                             <p class="text-center">Nama Jelas</p>
                         </div>
                         <div class="float-right"
-                            style="width: 190px;                                                     padding: 5px;                                                     height: 175px;                                                     border: 1px solid black;                                                     margin: 10px;">
+                            style="width: 190px; padding: 5px; height: 175px; border: 1px solid black; margin: 10px;">
                             <p class="text-center">Penerima</p>
                             <hr />
                             <br></br>

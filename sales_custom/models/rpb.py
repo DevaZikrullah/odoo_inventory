@@ -99,7 +99,7 @@ class rpbModelView(models.Model):
     picking_type_id = fields.Many2one('stock.picking.type')
     state_rpb = fields.Selection([
         ('being_delivered', 'Sedang Terkirim'),
-        ('failed_to_send', 'Gagal Terkirim'),
+        ('pending', 'Pending'),
         ('already_sent', 'Sudah Terkirim'),
     ], default="being_delivered")
     move_id = fields.Many2one('stock.move')
@@ -109,7 +109,7 @@ class rpbModelView(models.Model):
         for value in active_ids:
             # print(value)
             self.env['rpb.rpb.view'].search([('id', '=', value)]).write({
-                'state_rpb': 'failed_to_send'
+                'state_rpb': 'pending'
             })
 
     def state_progress_already_sent(self):

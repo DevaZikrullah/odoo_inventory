@@ -52,32 +52,85 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div id="informations" class="row">
+                                    <div class="d-flex col-7 bm-2">
+                                        <div class="mr-1">
+                                            <strong>Volume Kendaraan :</strong>
+                                        </div>
+                                        <div>
+                                            <p t-esc="float(o.vehicle_id.volume) and str(float(o.vehicle_id.volume)) + ' m3' or ''" class="m-0"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="informations" class="row">
+                                    <div class="d-flex col-7 bm-2">
+                                        <div class="mr-1">
+                                            <strong>Total muatan :</strong>
+                                        </div>
+                                        <div>
+                                            <p t-esc="float(o.total_volume_product) and str(float(o.total_volume_product)) + ' m3' or ''" class="m-0"/>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <!-- <table class="table table-sm o_main_table">
+                        <table>
+                          <tbody>
+                              <tr>
+                                  <td><strong>NO SO : </strong></td>
+                                  <td style="width: 90%;">
+                                      <t t-foreach="o.sale_id" t-as="line">
+                                          <span t-esc=" line.name,"/>
+                                      </t>
+                                  </td>
+                              </tr>
+                          </tbody>
+                      </table>
+                      <br></br>
+                        <table class="table table-sm o_main_table">
                             <thead>
                                 <tr>
                                     <th name="th_description"><strong>No</strong></th>
+                                    <th name="th_description"><strong>Code</strong></th>
+                                    <th style="width: 30%;" name="th_description"><strong>Nama Toko</strong></th>
+                                    <th style="width: 30%;" name="th_description"><strong>Alamat</strong></th>
                                     <th name="th_description"><strong>SO</strong></th>
-                                    <th name="th_description"><strong>Nama Toko</strong></th>
-                                    <th name="th_description"><strong>Kota</strong></th>
+                                    <th name="th_description"><strong>Total SO</strong></th>
+                                    <!--<th name="th_description"><strong>Kota</strong></th>-->
                                 </tr>
                             </thead>
                             <tbody>
                                 <t t-set="no" t-value="0"/>
-                                <t t-foreach="o.stock_picking_id" t-as="line">
+                                <t t-foreach="o.stock_picking_id" t-as="line"  t-groupby="line.partner_id">
                                     <t t-set="no" t-value="no+1"/>
+                                    <t t-set="a" t-value="0"/>
                                     <tr>
                                         <td><span t-esc="no"/></td>
-                                        <td><span t-esc="line.sale_id.name"/></td>
+                                        <td class="text-center"><div class="kotak"></div></td>
                                         <td><span t-esc="line.partner_id.name"/></td>
-                                        <td><span t-esc="line.partner_id.city"/></td>
+                                        <td><span t-esc="line.address_customer"/></td>
+                                        <td>
+                                          <table class="table table-sm o_main_table">
+                                              <tbody>
+                                                <t t-foreach="o.sale_id.filtered(lambda lines: lines.partner_id == line.partner_id)" t-as="lines">
+                                                  <tr>
+                                                      <!--<td class="text-left" style="width: 17%;"><div class="kotak"></div></td>-->
+                                                      <td><small><span t-esc="lines.name"/></small></td>
+                                                      <t t-set="a" t-value="a + 1"/>
+                                                  </tr>
+                                                </t>
+                                                  
+                                              </tbody>
+                                          </table>
+                                        </td>
+                                        <td class="text-center"><span t-esc="a"/></td>
+                                        <!--<td><span t-esc="line.partner_id.city"/></td>-->
                                     </tr>
                                 </t>
                             </tbody>
                         </table>
                         <br/>
-                        <br/> -->
+                        <br/>
                         <table class="table table-sm o_main_table ">
                             <t t-if="o.rpb_line_ids.filtered(lambda x: x.qty.id == 29)">
                                 <thead>
@@ -178,6 +231,151 @@
                             <tbody>
                                 <t t-set="no" t-value="0"/>
                                 <t t-foreach="sorted(o.rpb_line_ids.filtered(lambda line: line.qty.id == 26), key=lambda x: x.name)" t-as="line">
+                                    <t t-set="no" t-value="no+1"/>
+                                    <tr>
+                                        <td><span t-esc="no"/></td>
+                                        <td><span t-esc="line.product_id.name"/></td>
+                                        <td class="text-center"><span t-esc="int(line.demand)"/></td>
+                                        <td class="text-center"><span t-esc="int(line.done)"/></td>
+                                        <td class="text-center"><span t-esc="int(line.demand) - int(line.done)"/></td>
+                                        <!--<td><span t-esc="line.qty.name"/></td>-->
+                                        <td>
+                                                <table class="table table-sm o_main_table">
+                                                    <tbody>
+                                                      <t t-foreach="line.rpb_id.stock_picking_id.move_lines.filtered(lambda lines: lines.product_id == line.product_id)" t-as="lines">
+                                                        <tr>
+                                                            <td><small><span t-esc="lines.picking_id.partner_id.name"/></small></td>
+                                                        </tr>
+                                                      </t>
+                                                        
+                                                    </tbody>
+                                                </table>
+                                          </td>
+                                          <td class="text-center">
+                                            <table class="table table-sm o_main_table">
+                                                    <tbody>
+                                                      <t t-foreach="line.rpb_id.stock_picking_id.move_lines.filtered(lambda lines: lines.product_id == line.product_id)" t-as="lines">
+                                                        <tr>
+                                                            <td><small><span t-esc="int(lines.product_uom_qty) or 0"/></small></td>
+                                                        </tr>
+                                                      </t>
+                                                        
+                                                    </tbody>
+                                                </table>
+                                            <!--<t t-foreach="line.rpb_id.stock_picking_id.move_lines.filtered(lambda lines: lines.product_id == line.product_id)" t-as="lines">-->
+                                            <!--    <span t-esc="int(lines.quantity_done) or 0"/><br/>-->
+                                            <!--</t>-->
+                                          </td>
+                                        <td/>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <br/>
+                        <hr/>
+
+
+                        <table class="table table-sm o_main_table">
+                            <t t-if="o.rpb_line_ids.filtered(lambda x: x.qty.id == 27)">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 5%;" name="th_description"><strong>No</strong></th>
+                                        <th style="width: 27%;" name="th_description"><strong>Nama barang</strong></th>
+                                        <th style="width: 15%;" name="th_description" class="text-center" colspan="3"><strong>Qty(PACK)</strong></th>
+                                        <!--<th style="width: 8%;" name="th_description"><strong>PCS</strong></th>-->
+                                        <th style="width: 30%;" name="th_description"><strong>Nama Toko</strong></th>
+                                        <th style="width: 8%;" class="text-center" name="th_description">Qty Toko<strong/></th>
+                                        <th class="text-center" name="th_description"><strong>Catatan</strong></th>
+                                    </tr>
+                                    <tr>
+                                      <th/>
+                                      <th/>
+                                      <th class="text-center"><small><strong>SO</strong></small></th>
+                                      <th class="text-center"><small><strong>DO</strong></small></th>
+                                      <th class="text-center"><small><strong>( - )</strong></small></th>
+                                      <!--<th/>-->
+                                      <th/>
+                                      <th/>
+                                      <th/>
+                                  </tr>
+                                </thead>
+                            </t>
+                            
+                            <tbody>
+                                <t t-set="no" t-value="0"/>
+                                <t t-foreach="sorted(o.rpb_line_ids.filtered(lambda line: line.qty.id == 27), key=lambda x: x.name)" t-as="line">
+                                    <t t-set="no" t-value="no+1"/>
+                                    <tr>
+                                        <td><span t-esc="no"/></td>
+                                        <td><span t-esc="line.product_id.name"/></td>
+                                        <td class="text-center"><span t-esc="int(line.demand)"/></td>
+                                        <td class="text-center"><span t-esc="int(line.done)"/></td>
+                                        <td class="text-center"><span t-esc="int(line.demand) - int(line.done)"/></td>
+                                        <!--<td><span t-esc="line.qty.name"/></td>-->
+                                        <td>
+                                                <table class="table table-sm o_main_table">
+                                                    <tbody>
+                                                      <t t-foreach="line.rpb_id.stock_picking_id.move_lines.filtered(lambda lines: lines.product_id == line.product_id)" t-as="lines">
+                                                        <tr>
+                                                            <td><small><span t-esc="lines.picking_id.partner_id.name"/></small></td>
+                                                        </tr>
+                                                      </t>
+                                                        
+                                                    </tbody>
+                                                </table>
+                                          </td>
+                                          <td class="text-center">
+                                            <table class="table table-sm o_main_table">
+                                                    <tbody>
+                                                      <t t-foreach="line.rpb_id.stock_picking_id.move_lines.filtered(lambda lines: lines.product_id == line.product_id)" t-as="lines">
+                                                        <tr>
+                                                            <td><small><span t-esc="int(lines.product_uom_qty) or 0"/></small></td>
+                                                        </tr>
+                                                      </t>
+                                                        
+                                                    </tbody>
+                                                </table>
+                                            <!--<t t-foreach="line.rpb_id.stock_picking_id.move_lines.filtered(lambda lines: lines.product_id == line.product_id)" t-as="lines">-->
+                                            <!--    <span t-esc="int(lines.quantity_done) or 0"/><br/>-->
+                                            <!--</t>-->
+                                          </td>
+                                        <td/>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <br/>
+                        <hr/>
+
+                        <table class="table table-sm o_main_table">
+                            <t t-if="o.rpb_line_ids.filtered(lambda x: x.qty.id == 28)">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 5%;" name="th_description"><strong>No</strong></th>
+                                        <th style="width: 27%;" name="th_description"><strong>Nama barang</strong></th>
+                                        <th style="width: 15%;" name="th_description" class="text-center" colspan="3"><strong>Qty(LUSIN)</strong></th>
+                                        <!--<th style="width: 8%;" name="th_description"><strong>PCS</strong></th>-->
+                                        <th style="width: 30%;" name="th_description"><strong>Nama Toko</strong></th>
+                                        <th style="width: 8%;" class="text-center" name="th_description">Qty Toko<strong/></th>
+                                        <th class="text-center" name="th_description"><strong>Catatan</strong></th>
+                                    </tr>
+                                    <tr>
+                                      <th/>
+                                      <th/>
+                                      <th class="text-center"><small><strong>SO</strong></small></th>
+                                      <th class="text-center"><small><strong>DO</strong></small></th>
+                                      <th class="text-center"><small><strong>( - )</strong></small></th>
+                                      <!--<th/>-->
+                                      <th/>
+                                      <th/>
+                                      <th/>
+                                  </tr>
+                                </thead>
+                            </t>
+                            
+                            <tbody>
+                                <t t-set="no" t-value="0"/>
+                                <t t-foreach="sorted(o.rpb_line_ids.filtered(lambda line: line.qty.id == 28), key=lambda x: x.name)" t-as="line">
                                     <t t-set="no" t-value="no+1"/>
                                     <tr>
                                         <td><span t-esc="no"/></td>
