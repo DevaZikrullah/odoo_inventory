@@ -31,4 +31,11 @@ class transDate(models.Model):
         accurate = main.SaleOrderController()
         accurate.get_po_accurate(formatted_date_from, formatted_date_to)
 
+    def update_accurate_barang_masuk(self):
+        formatted_date_from = self.date_from.strftime('%d/%m/%Y')
+        formatted_date_to = self.date_to.strftime('%d/%m/%Y')
+
+        accurate = main.SaleOrderController()
+        accurate.get_receive_item_accurate(formatted_date_from, formatted_date_to)
+
 

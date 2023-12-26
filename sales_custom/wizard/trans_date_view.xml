@@ -34,6 +34,13 @@
                         class="oe_highlight"
                         attrs="{'invisible': [('active_ids', '!=', 1)]}"
                     />
+                    <button
+                        name="update_accurate_barang_masuk"
+                        string="Pengambilan Penerimaan Accurate"
+                        type="object"
+                        class="oe_highlight"
+                        attrs="{'invisible': [('active_ids', '!=', 9)]}"
+                    />
                     <button string="Cancel" class="btn btn-primary" special="cancel" />
                 </footer>
             </form>

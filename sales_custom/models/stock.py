@@ -18,6 +18,7 @@ class StockInh(models.Model):
     desc_barang = fields.Char('Desc')
     city_cust = fields.Char('Kota',compute='address_city')
     rute_so = fields.Char(string="Rute")
+    item_accurate_id = fields.Char('Accurate ID')
 
 
     def redirect_url_accurate(self):
