@@ -1,5 +1,6 @@
 import requests
 from urllib.parse import parse_qs
+import json
 
 import odoo
 from odoo import http
@@ -667,6 +668,86 @@ class SaleOrderController(http.Controller):
         return {
             'data': records_so_create
         }
+
+    def get_receive_item_accurate(self, from_date, to_date):
+        product = request.env['product.template']
+        stock_picking = request.env['stock.picking']
+        stock_move = request.env['stock.move']
+        product_template_obj = request.env['product.product']
+        vendor = request.env['res.partner']
+        access_token = self.get_access_token()['access_token']
+        session = self.open_db_accurate(access_token)['session']
+        url = f'https://zeus.accurate.id/accurate/api/receive-item/list.do?sp.pageSize=100&filter.transDate.op' \
+              f'=BETWEEN&filter.transDate.val={from_date}&filter.transDate.val={to_date}'
+
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'X-Session-ID': session
+        }
+
+
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            page_count = data['sp']['pageCount']
+            for page in range(0, page_count):
+                data_url = f"{url}&sp.page={page}"
+                response_url = requests.get(data_url, headers=headers)
+                items_url = response_url.json()['d']
+                for item in items_url:
+                    records_stock_picking_create = []
+                    id_item = item['id']
+                    url = f'https://zeus.accurate.id/accurate/api/receive-item/detail.do?id={int(id_item)}'
+
+                    headers = {
+                        'Authorization': f'Bearer {access_token}',
+                        'X-Session-ID': session
+                    }
+                    response = requests.get(url, headers=headers)
+                    if response.status_code == 200:
+                        data = response.json()['d']
+                        vendor_id = vendor.search(
+                            [('customer_accurate_id', '=', data['vendorId'])], limit=1)
+
+                        formatted_data = {
+                            'origin': data['number'],
+                            'item_accurate_id': data['id'],
+                            'partner_id': vendor_id,
+                            'location_id': 14,
+                            'location_dest_id': 8,
+                            'picking_type_id' : 9,
+                            'address_customer': data['toAddress'],
+                            'state': 'assigned',
+                        }
+
+                        records_stock_picking_create.append(formatted_data)
+
+                        existing_record = stock_picking.search(
+                            [('item_accurate_id', '=', data['id'])])
+
+                        if not existing_record:
+                            stock_picking_obj = stock_picking.sudo().create(formatted_data)
+
+                            for value in data['detailItem']:
+
+                                product_id = product.search(
+                                    [('item_accurate_id', '=', value['itemId'])], limit=1)
+
+                                item = {
+                                    'product_id': product_id.id,
+                                    'name': value['detailName'],
+                                    'product_uom': product_id.uom_id.id,
+                                    'location_id': 14,
+                                    'location_dest_id': 8,
+                                    'product_uom_qty': value['quantity'],
+                                    'price_unit': value['unitPrice'],
+                                    'picking_id': stock_picking_obj.id,
+                                }
+                                stock_move.sudo().create(item)
+                                stock_picking_obj.write({
+                                    'state': 'assigned'
+                                })
+
 
 
     def accurate_so_sync(self, id_so,id_so_accurate):
