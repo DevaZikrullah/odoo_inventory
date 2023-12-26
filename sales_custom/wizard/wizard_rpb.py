@@ -39,7 +39,7 @@ class wizardRpb(models.TransientModel):
         self.driver_id = False
         if self.vehicle_id:
             self.driver_id = int(self.vehicle_id.driver_id)
-        limit_volume = self.env['fleet.vehicle'].search([('id', '=', self.vehicle_id.id)])
+        limit_volume  = self.env['fleet.vehicle'].search([('id', '=', self.vehicle_id.id)])
         jumlah_barang = self.rpb_line_id
 
 
@@ -53,11 +53,13 @@ class wizardRpb(models.TransientModel):
         a = 0
         for i in jumlah_barang:
             a += int(self.env['product.template'].search([('id', '=', i.product_id.product_tmpl_id.id)]).volume) * int(
-                i.done)
+                i.demand)
+        # raise UserError(a)
         rpb_car = self.env['rpb.rpb.view'].search(
-            [('state_rpb', '=', 'draft'), ('vehicle_id', 'in', self.vehicle_id.ids)])
+            [('state_rpb', '=', 'draft'), ('vehicle_id', 'in', self.vehicle_id.ids), ('create_date','=',datetime.datetime.now())])
+        
         print(rpb_car)
-        print(limit_volume.limit_storage)
+        print(datetime.datetime.now())
         rpb_car_count = 0
         for car in rpb_car:
             rpb_car_count += int(car.total_volume_product)
@@ -205,17 +207,13 @@ class wizardRpb(models.TransientModel):
             })
         rpb_list.create(list_rpb_view)
         jumlah_barang = self.rpb_line_id
-        # tamp_prd = []
-        #
-        # for prod in jumlah_barang:
-        #     tamp_prd.append(int(prod.product_tmpl_id))
-
-        # product = self.env['product.template'].search([('id', 'in', tamp_prd)])
-        # print(tamp_prd)
         a = 0
         for i in jumlah_barang:
             a += int(self.env['product.template'].search([('id', '=', i.product_id.product_tmpl_id.id)]).volume) * int(
-                i.done)
+                i.demand)
+        
+        print('aowkowakowakwaokwao')
+        print(a)
         list = []
         for j in stock_move:
             if not any(item[2]['product_id'] == j.product_id.id for item in list):
@@ -239,19 +237,6 @@ class wizardRpb(models.TransientModel):
                     'done': j.quantity_done,
                     'qty': int(j.product_uom)
                 }))
-                # data = {
-                #     'id': int(i.id),
-                #     'name': str(i.name),
-                #     'product_id': int(i.product_id),
-                #     'description': str(i.description_picking),
-                #     'date_scheduled': str(i.date),
-                #     'deadline': str(i.date_deadline),
-                #     'demand': i.product_uom_qty,
-                #     'reserved': res,
-                #     'done': i.quantity_done,
-                #     'qty': i.product_uom
-                # }
-                # list.append((0, 0, data))
             else:
                 for it in list:
                     if it[2]['product_id'] == j.product_id.id:
@@ -259,6 +244,11 @@ class wizardRpb(models.TransientModel):
                         it[2]['done'] += j.quantity_done
             
             # rpb_line.create(data_line)
+        for value in active_ids:
+            stock_pick = self.env['stock.picking'].search([('id', '=', value)])
+            stock_pick.write({
+                'state': 'rpb'
+            })
         data = {
             'name': ''+str(self.name)+'/'+str(self.id)+'',
             'stock_picking_id': self.stock_picking_id,
@@ -271,8 +261,6 @@ class wizardRpb(models.TransientModel):
             'rpb_line_ids': list
         }
         rpb.create(data)
-
-        print(active_ids)
 
     def cancel_button(self):
         return {'type': 'ir.actions.act_window_close'}

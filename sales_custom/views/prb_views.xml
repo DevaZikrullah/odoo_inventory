@@ -29,7 +29,7 @@
                                     <!-- <field name="description"/> -->
                                     <field name="date_scheduled" readonly="1"/>
                                     <!-- <field name="deadline"/> -->
-                                    <!-- <field name="demand"/> -->
+                                    <field name="demand"/>
                                     <!-- <field name="reserved"/> -->
                                     <field name="done" readonly="1"/>
                                     <field name="qty" readonly="1"/>
@@ -54,6 +54,18 @@
             </tree>
         </field>
     </record>
+
+    <record id="ir_actions_server_custom_cancel" model="ir.actions.server">
+        <field name="name">Batal</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_rpb_rpb"/>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.rpb_cancellation()
+        </field>
+        <field name="binding_model_id" ref="sales_custom.model_rpb_rpb"/>
+     </record>
 
     <record id="rpb_rpb_action" model="ir.actions.act_window">
         <field name="name">RPB</field>

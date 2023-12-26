@@ -11,13 +11,13 @@ class StockInh(models.Model):
     address_customer = fields.Char(string='Address', compute='address_cust')
     vehicle_id = fields.Many2one('fleet.vehicle', string='Vehicle')
     state = fields.Selection(selection_add=[
-        ('rpb','RPB'),
-        ('deliverey', 'To Delivery'), ('done',)])
+            ('rpb', 'RPB'),('done',)])
     temp_storage_show = fields.Boolean()
     is_invoice = fields.Char('Faktur',compute='is_invoices')
     count_rpb = fields.Integer(compute='_compute_ccount_rpb')
     desc_barang = fields.Char('Desc')
     city_cust = fields.Char('Kota',compute='address_city')
+    rute_so = fields.Char(string="Rute")
 
 
     def redirect_url_accurate(self):
@@ -38,6 +38,24 @@ class StockInh(models.Model):
         t.parse(int(self.sale_id.amount_total))
         return t.getresult()
 
+    def cancel_so(self):
+        for data in self:
+            data.write({
+                'state' : 'assigned'
+            })
+            rpb = self.env['rpb.rpb'].search(
+                [('sale_id', '=', data.sale_id.id)])
+            list_sale = []
+            list_stock_picking = []
+            for value in rpb.sale_id:
+                if value.id != data.sale_id.id:
+                    list_sale.append(value.id)
+            for value in rpb.stock_picking_id:
+                if value.id != data.id:
+                    list_stock_picking.append(value.id)
+            rpb_view = self.env['rpb.rpb.view'].search(
+                [('source_document_id', '=', data.sale_id.id)])
+            rpb_view.unlink()
 
 
     def _compute_ccount_rpb(self):

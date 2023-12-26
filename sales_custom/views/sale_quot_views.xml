@@ -135,6 +135,7 @@
                    <field name="is_invoice" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
                    <field name="vehicle_id" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
                    <field name="desc_barang" attrs="{'invisible': [('picking_type_id', 'not in', [9, 10])]}"/>
+                   <field name="rute_so" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
                </xpath>
            </field>
        </record>
@@ -161,6 +162,18 @@
         <field name="code">
             if records:
                 action = records.delivered()
+        </field>
+        <field name="binding_model_id" ref="sales_custom.model_stock_picking"/>
+       </record>
+
+       <record id="ir_actions_server_custom_cancel_so" model="ir.actions.server">
+        <field name="name">Pending</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_stock_picking"/>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.cancel_so()
         </field>
         <field name="binding_model_id" ref="sales_custom.model_stock_picking"/>
        </record>

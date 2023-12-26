@@ -34,6 +34,20 @@ class prbModelsClass(models.Model):
         for line in self:
             record_id = [('id', int(line.id))]
             report.custom_report_download(record_id)
+
+    def rpb_cancellation(self):
+        for data in self:
+            rpb_view = self.env['rpb.rpb.view'].search([('name', '=', data.name)])
+            data_so = []
+            for value in rpb_view:
+                data_so.append(value.source_document_id.id)
+                value.unlink()
+            for value in set(data_so):
+                so = self.env['stock.picking'].search([('sale_id', '=', value)])
+                so.write({
+                    'state': 'assigned'
+                })
+            data.unlink()
     
     def cek_qty(self):
         line_now = self.env['rpb.line'].search([('rpb_id', '=', self.id)])

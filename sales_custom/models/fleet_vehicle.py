@@ -6,7 +6,7 @@ class FleetVehicle(models.Model):
     _inherit = 'fleet.vehicle'
 
     set_limit = fields.Integer()
-    limit_storage = fields.Integer('Limit Storage')
+    limit_storage = fields.Integer('Limit Storage',compute="_compute_limit_srorage")
     fleet_order_line = fields.One2many('stock.picking', 'vehicle_id', 'Fleet Order Line')
     avail_storage = fields.Integer('Available', compute="_compute_avail_srorage")
 
@@ -38,6 +38,12 @@ class FleetVehicle(models.Model):
                 self.avail_storage = value.limit_storage - sum(total_qty)
                 if self.avail_storage < 0:
                     raise UserError('Muatan Penuh')
+
+    @api.depends('volume')
+    def _compute_limit_srorage(self):
+        for i in self:
+            i.limit_storage = i.volume
+
 
     # @api.depends('state')
     # def compute_staging(self):

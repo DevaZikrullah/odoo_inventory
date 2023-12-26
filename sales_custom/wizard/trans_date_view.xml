@@ -29,7 +29,7 @@
                     />
                     <button
                         name="update_accurate_button_po"
-                        string="Update Accurate PO"
+                        string="Pengambilan PO Accurate"
                         type="object"
                         class="oe_highlight"
                         attrs="{'invisible': [('active_ids', '!=', 1)]}"

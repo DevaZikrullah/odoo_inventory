@@ -14,6 +14,7 @@ class SaleOrderController(http.Controller):
 
     def get_data_accurate(self, date_from, date_to):
         access_token = self.get_access_token()['access_token']
+        print(access_token)
         session = self.open_db_accurate(access_token)['session']
         # cust = self.get_customer(access_token,session)
         # product = self.get_product_accurate(access_token, session)
@@ -96,7 +97,6 @@ class SaleOrderController(http.Controller):
                 data_url = f"{url}&sp.page={page}"
                 response_url = requests.get(data_url, headers=headers)
                 items_url = response_url.json()['d']
-                print(items_url)
                 for item in items_url:
                     extracted_item = {
                         'vendor name': item['name'],
@@ -152,43 +152,11 @@ class SaleOrderController(http.Controller):
         product_template_obj.sudo().create(records_to_create)
 
     def get_access_token(self):
-        url = 'https://account.accurate.id/oauth/authorize'
-        client_id = '8de2a1e6-4b1c-4ca2-8898-f0bd18ed0447'
-        redirect_uri = 'http://localhost:8069/web/assets/aol-oauth-callback'
-        scope = 'purchase_order_view+item_view+sales_order_view+customer_view+vendor_view'
-        username = 'noviamardiyanti85@gmail.com'
-        password = '@Herman998'
-        response = requests.get(url,
-                                auth=HTTPBasicAuth(username, password),
-                                params={
-                                    'client_id': client_id,
-                                    'response_type': 'token',
-                                    'redirect_uri': redirect_uri,
-                                    'scope': scope
-                                })
-
-        parsed_url = parse_qs(response.url)
-        token_type = parsed_url.get('token_type', [None])[0]
-        expires_in = parsed_url.get('expires_in', [None])[0]
-        access_token = ""
-        url = response.url
-        url_parts = url.split("/")
-        last_part = url_parts[-1].split("&")
-        result_array = url_parts[:-1] + last_part
-        for index, value in enumerate(result_array):
-            try:
-                if index == 5:
-                    access_token = value.split("#")[1].replace("access_token=", "")
-            except:
-                raise UserError('Register Accurate Terlebih Dahulu')
-
-        response_data = {
-            'access_token': access_token,
-            'token_type': token_type,
-            'expires_in': expires_in
+        newest_token = request.env['token.accurate'].search([], order='create_date desc', limit=1)
+        data = {
+            'access_token' : newest_token.name
         }
-
-        return response_data
+        return data
 
     def create_item_adjustment_records(self):
         current_datetime = datetime.datetime.now()
@@ -464,6 +432,8 @@ class SaleOrderController(http.Controller):
         product = request.env['product.template']
         purchase = request.env['purchase.order']
         purchase_order = request.env['purchase.order.line']
+        product_template_obj = request.env['product.product']
+        vendor = request.env['res.partner']
         access_token = self.get_access_token()['access_token']
         session = self.open_db_accurate(access_token)['session']
         url = f'https://zeus.accurate.id/accurate/api/purchase-order/list.do?sp.pageSize=100&filter.transDate.op' \
@@ -483,10 +453,10 @@ class SaleOrderController(http.Controller):
                 response_url = requests.get(data_url, headers=headers)
                 items_url = response_url.json()['d']
                 for item in items_url:
-                    id_item = item['id']  # Store 'item['id']' in the list
+                    id_item = item['id']
+                    print(id_item)
                     records_purchase_create = []
-                    url = f'https://zeus.accurate.id/accurate/api/purchase-order/detail.do?id={id_item}'
-                    print(url)
+                    url = f'https://zeus.accurate.id/accurate/api/purchase-order/detail.do?id={int(id_item)}'
 
                     headers = {
                         'Authorization': f'Bearer {access_token}',
@@ -499,40 +469,97 @@ class SaleOrderController(http.Controller):
                     ymd_date = f"{year}-{month}-{day}"
                     vendor_id = request.env['res.partner'].search(
                         [('vendor_accurate_id', '=', data['vendorId'])], limit=1)
-                    result = 1 if int(vendor_id) == 0 else int(vendor_id)
+                    records_to_create_vendor = []
+                    created_vendor = None
+
+                    if not vendor_id:
+                        created_vendor = vendor.sudo().create({
+                            'name': data['vendor']['name'],
+                            'vendor_accurate_id': data['vendor']['id'],
+                            'vendor_accurate_no': data['vendor']['vendorNo'],
+                            'supplier_rank': 1
+                        })
+
+                        records_to_create_vendor.append(created_vendor)
+
                     formatted_data = {
                         'name': data['number'],
                         'date_planned': ymd_date,
                         'item_accurate_id': data['id'],
                         'vendor_accurate': data['vendor']['name'],
-                        'partner_id': result,
+                        'partner_id': created_vendor.id if created_vendor else vendor_id.id,
                         'state': 'purchase'
-                        # 'subTotal': data['subTotal']
                     }
 
                     records_purchase_create.append(formatted_data)
 
                     existing_record = purchase.search(
                         [('item_accurate_id', '=', str(data['id']))])
-                    if not existing_record:
-                        # print(type(data['id']))
 
-                        # Create records using the env ORM context
+                    create_po_order_lines = []
+
+                    if not existing_record:
                         purchase_create = purchase.sudo().create(formatted_data)
+                        created_product = []
+
                         for value in data['detailItem']:
                             product_id = product.search(
-                                [('item_accurate_id', '=', value['itemId'])])
-                            item = {
-                                'product_id': product_id.id,
-                                'name': value['detailName'],
-                                'product_qty': value['quantity'],
-                                'price_unit': value['unitPrice'],
-                                'order_id': purchase_create.id,
-                                'price_tax': 0
-                            }
-                            purchase_order.sudo().create(item)
+                                [('item_accurate_id', '=', value['itemId'])],limit=1)
 
-                        _logger.info("Background function finished")
+                            if not product_id:
+                                if value['item']['unit1']['name'] is not None:
+                                    uom_type = request.env['uom.uom'].search(
+                                        [('name', '=', value['item']['unit1']['name'])],
+                                        limit=1)
+
+                                    if not uom_type:
+                                        uom_category = request.env['uom.category'].create({
+                                            'name': value['item']['unit1']['name']
+                                        })
+
+                                        uom_type.create({
+                                            'name': value['item']['unit1']['name'],
+                                            'category_id': uom_category.id
+                                        })
+
+                                    created_product_vals = {
+                                        'name': value['item']['name'],
+                                        'item_accurate_id': value['item']['id'],
+                                        'item_accurate_number': value['item']['no'],
+                                        'uom_id': int(uom_type),
+                                        'uom_po_id': int(uom_type),
+                                        'detailed_type': 'product',
+                                    }
+
+                                    created_product.append(created_product_vals)
+
+                                    created_product_record = product_template_obj.sudo().create(created_product_vals)
+
+                                    item = {
+                                        'product_id': created_product_record.id,
+                                        'name': value['detailName'],
+                                        'product_qty': value['quantity'],
+                                        'price_unit': value['unitPrice'],
+                                        'order_id': purchase_create.id,
+                                        'taxes_id': [(5, 0, 0)]
+                                    }
+
+                                    create_po_order_lines.append(item)
+
+
+                            else:
+
+                                item = {
+                                    'product_id': product_id.id,
+                                    'name': value['detailName'],
+                                    'product_qty': value['quantity'],
+                                    'price_unit': value['unitPrice'],
+                                    'order_id': purchase_create.id,
+                                    'taxes_id': [(5, 0, 0)]
+                                }
+                                create_po_order_lines.append(item)
+
+                            purchase_order.create(create_po_order_lines)
 
     def get_so_accurate(self, access_token, session, from_date, to_date):
         product = request.env['product.template']
@@ -590,6 +617,13 @@ class SaleOrderController(http.Controller):
                                 for salesman in value['salesmanList']:
                                     salesman_so = salesman['name']
 
+                            value_rute = ''
+                            print(data['toAddress'])
+                            
+                            if '#' in str(data['toAddress']):
+                                value_rute = data['toAddress'][data['toAddress'].find("#"):]
+                                print(value_rute)
+
 
                             formatted_data = {
                                 'name': data['number'],
@@ -598,6 +632,7 @@ class SaleOrderController(http.Controller):
                                 'customer': data['customer']['name'],
                                 'partner_id': int(data_cust),
                                 'accurate_address': data['toAddress'],
+                                'rute': value_rute.replace("#",""),
                                 'has_been_invoiced': status,
                                 'state': 'sale',
                                 'salesman' : salesman_so
@@ -616,8 +651,6 @@ class SaleOrderController(http.Controller):
                                         sale.write({
                                             'salesman': salesman['name']
                                         })
-                                        print(salesman['name'])
-
 
                                     product_id = product.search(
                                         [('item_accurate_id', '=', value['itemId'])], limit=1)
@@ -631,7 +664,6 @@ class SaleOrderController(http.Controller):
                                     }
                                     sale_order.sudo().create(item)
 
-                                _logger.info("Background function finished")
         return {
             'data': records_so_create
         }
@@ -661,7 +693,7 @@ class SaleOrderController(http.Controller):
                 data = response.json()['d']
                 for value in data['detailItem']:
                     product_id = product.search(
-                        [('item_accurate_id', '=', value['itemId'])])
+                        [('item_accurate_id', '=', value['itemId'])],limit=1)
                     item = {
                         'product_id': product_id.id,
                         'name': value['detailName'],
