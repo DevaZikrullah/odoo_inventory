@@ -455,9 +455,8 @@ class SaleOrderController(http.Controller):
                 items_url = response_url.json()['d']
                 for item in items_url:
                     id_item = item['id']
-                    print(id_item)
                     records_purchase_create = []
-                    url = f'https://zeus.accurate.id/accurate/api/purchase-order/detail.do?id={int(id_item)}'
+                    url = f'https://zeus.accurate.id/accurate/api/purchase-order/detail.do?id={id_item}'
 
                     headers = {
                         'Authorization': f'Bearer {access_token}',

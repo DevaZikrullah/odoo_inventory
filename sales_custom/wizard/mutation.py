@@ -20,9 +20,9 @@ class Mutation(models.Model):
         stock_move = self.env['stock.move.line']
 
         item_adjustment_accurate_in = self.env['stock.picking'].create({
-            'name': 'BM/' + formatted_datetime.replace(' ', '/'),
-            'origin': 'BM/' + formatted_datetime.replace(' ', '/'),
-            'desc_barang': 'Barang Masuk Mutasi',
+            'name': 'BK/' + formatted_datetime.replace(' ', '/'),
+            'origin': 'BK/' + formatted_datetime.replace(' ', '/'),
+            'desc_barang': 'Barang Masuk Kanibal',
             'picking_type_id': 9,
             'location_id': 14,
             'location_dest_id': 8,
@@ -47,7 +47,7 @@ class Mutation(models.Model):
         item_adjustment_accurate_out = self.env['stock.picking'].create({
             'name': 'BK/' + formatted_datetime.replace(' ', '/'),
             'origin': 'BK/' + formatted_datetime.replace(' ', '/'),
-            'desc_barang': 'Barang Keluar Mutasi',
+            'desc_barang': 'Barang Keluar Kanibal',
             'picking_type_id': 10,
             'location_id': 8,
             'location_dest_id': 14,

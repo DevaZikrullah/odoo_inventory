@@ -33,7 +33,11 @@
                <xpath expr="//field[@name='name']" position="before">
                     <field name="item_accurate_number"/>
                </xpath>
+               <xpath expr="//field[@name='uom_id']" position="before">
+                    <field name="stock_ordered"/>
+               </xpath>
            </field>
        </record>
+
    </data>
 </odoo>

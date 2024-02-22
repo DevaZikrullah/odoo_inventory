@@ -3,6 +3,13 @@ from odoo.exceptions import UserError,AccessError
 from ..controllers import main
 from terbilang import Terbilang
 
+AVAILABLE_PRIORITIES = [
+    ('0', 'Very Low'),
+    ('1', 'Sudah RPB'),
+    ('2', 'Pending'),
+    ('3', 'High'),
+    ('4', 'Very High'),
+    ('5', 'Urgent')]
 
 
 class StockInh(models.Model):
@@ -19,6 +26,14 @@ class StockInh(models.Model):
     city_cust = fields.Char('Kota',compute='address_city')
     rute_so = fields.Char(string="Rute")
     item_accurate_id = fields.Char('Accurate ID')
+    source_document_accurate = fields.Char(string='Source Document Accurate',compute='source_document_compute')
+    set_priority = fields.Selection(AVAILABLE_PRIORITIES, select=True)
+
+
+    @api.depends('state')
+    def source_document_compute(self):
+        for value in self:
+            value.source_document_accurate = value.purchase_id.origin
 
 
     def redirect_url_accurate(self):
@@ -77,10 +92,20 @@ class StockInh(models.Model):
             status_list.append(i.state)
 
         # Issue 2: The condition should be 'or', not 'or' in list
-        if any(item in ['draft', 'waiting', 'done', 'cancel'] for item in status_list):
+        if any(item in ['draft', 'done', 'cancel'] for item in status_list):
             raise UserError('Status Harus Siap Atau Menunggu!')
 
+        # if any(item in ['draft', 'confirmed', 'done', 'cancel'] for item in status_list):
+        #     raise UserError('Status Harus Siap Atau Menunggu!')
+
         a = self.env['rpb.rpb.view'].search([('stock_picking_id', 'in', active_ids)])
+
+        for record in active_ids:
+            stock = self.env['stock.picking'].search([('id', '=', record)])
+            # print(stock.origin)
+            excep = self.env['rpb.rpb.view'].search([('origin', '=', stock.origin)])
+            if excep:
+                raise UserError('RPB sudah dibuat')
 
         # Issue 3: Correct the condition for 'state_rpb'
         if any(d.state_rpb in ['being_delivered', 'already_sent'] for d in a):
@@ -102,7 +127,6 @@ class StockInh(models.Model):
         self.move_lines._set_quantities_to_reservation()
         a = self.env['rpb.rpb.view'].search([('stock_picking_id', '=', int(self.id))])
         print(a)
-        exit()
         if a:
             raise UserError('RPB sudah dibuat')
         else:

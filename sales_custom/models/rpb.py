@@ -6,6 +6,9 @@ from odoo.http import request, _logger
 class prbModelsClass(models.Model):
     _name = 'rpb.rpb'
 
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+
+
     name = fields.Char()
     stock_picking_id = fields.Many2many('stock.picking')
     sale_id = fields.Many2many('sale.order')
@@ -19,6 +22,8 @@ class prbModelsClass(models.Model):
         ('draft', 'Draft'),
         ('post', 'Post')
     ], default="draft")
+    tag = fields.Many2many('rpb.tag')
+
 
     
     def write(self, vals):
@@ -48,6 +53,22 @@ class prbModelsClass(models.Model):
                     'state': 'assigned'
                 })
             data.unlink()
+    
+    def rpb_done(self):
+        for data in self:
+            tag = self.env['rpb.tag'].search([('name', '=', 'Sudah Terkirim')])
+            data.tag = [(4, tag.id)]
+            for data_stock_picking in data.stock_picking_id:
+                data_stock_picking.write({
+                    'state': 'assigned'
+                })
+                rpb_report = self.env['rpb.rpb.view'].search([('name', '=', data.name)])
+                for data_report_rpb in rpb_report:
+                    data_report_rpb.write({
+                        'state_rpb': 'already_sent'
+                    })
+                data_stock_picking.action_set_quantities_to_reservation()
+                data_stock_picking.button_validate()
     
     def cek_qty(self):
         line_now = self.env['rpb.line'].search([('rpb_id', '=', self.id)])
@@ -91,6 +112,12 @@ class rpbLineModels(models.Model):
     done = fields.Float()
     qty = fields.Many2one('uom.uom', string="Uom")
     rpb_id = fields.Many2one('rpb.rpb')
+    accurate_number = fields.Char('Accurate No',compute='_code_accurate_compute')
+
+    @api.depends('name')
+    def _code_accurate_compute(self):
+        for value in self:
+            value.accurate_number = value.product_id.item_accurate_number
 
 
 class rpbModelView(models.Model):
@@ -117,6 +144,8 @@ class rpbModelView(models.Model):
         ('already_sent', 'Sudah Terkirim'),
     ], default="being_delivered")
     move_id = fields.Many2one('stock.move')
+    origin = fields.Char(string='origin')
+
 
     def state_progress_failed_to_send(self):
         active_ids = self.env.context.get('active_ids', [])
@@ -151,3 +180,8 @@ class rpbModelView(models.Model):
         #     stok_move = self.env['stock.move'].search([('picking_id','=',int(i.stock_picking_id.id)),('product_id','=',int(i.product_id.id)),('product_uom_qty','=',i.demand)])
         #     print('UPDATE rpb_rpb_view SET move_id = '+str(stok_move.id)+' WHERE id = '+str(i.id)+';')
         
+
+class rpbTag(models.Model):
+    _name = 'rpb.tag'
+
+    name = fields.Char()

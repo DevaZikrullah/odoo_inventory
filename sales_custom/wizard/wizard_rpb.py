@@ -182,7 +182,8 @@ class wizardRpb(models.TransientModel):
             b += int(self.env['product.template'].search([('id', '=', i.product_id.product_tmpl_id.id)]).volume) * int(i.done)
         for save in stock_move:
             deadline = datetime.datetime.now()
-            scdule = datetime.datetime.now()
+            scdule = save.picking_id.sale_id.date_order
+            str_date = scdule.strftime("%Y-%m-%d")
             if save.date_deadline:
                 deadline = save.date_deadline
             if save.date:
@@ -193,7 +194,7 @@ class wizardRpb(models.TransientModel):
                 "source_document_id": int(save.picking_id.sale_id),
                 "product_id": int(save.product_id),
                 "description": save.description_picking,
-                "date_scheduled": str(scdule),
+                "date_scheduled": str(str_date),
                 'total_volume_product' : b,
                 "deadline": str(deadline),
                 "demand": save.product_uom_qty,

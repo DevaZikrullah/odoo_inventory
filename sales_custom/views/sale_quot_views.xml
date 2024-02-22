@@ -15,6 +15,9 @@
                 <xpath expr="//field[@name='location_id']" position="replace">
                    <xpath expr="//field[@name='partner_id']" position="move"/>
                </xpath>
+               <xpath expr="//field[@name='priority']" position="replace">
+                   <field name="set_priority" widget="priority"/>
+               </xpath>
                <xpath expr="//field[@name='partner_id']" position="after">
                    <field name="address_customer" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
                    <field name="city_cust" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
@@ -43,6 +46,17 @@
             </tree>
         </field>
         </record>
+
+        <record id="view_stock_quant_tree_inventory_editable_inherti" model="ir.ui.view">
+           <field name="name">stock.quant.inventory.tree.editable.inherit</field>
+           <field name="model">stock.quant</field>
+           <field name="inherit_id" ref="stock.view_stock_quant_tree_inventory_editable"/>
+           <field name="arch" type="xml">
+               <xpath expr="//field[@name='product_id']" position="before">
+                   <field name="item_accurate_no"/>
+               </xpath>
+           </field>
+       </record>
 
        <record id="ir_actions_server_custom_button_update_accurate_customer" model="ir.actions.server">
            <field name="name">Update Customer</field>
@@ -93,7 +107,7 @@
        <menuitem id="menu_register_accurate" name="Register Accurate" action="ir_actions_server_custom_button_redirect_accurate" parent="stock.menu_stock_config_settings"  sequence="2"/>
 
 
-        <record id="view_stock_move_line_detailed_operation_tree_inherited" model="ir.ui.view">
+       <record id="view_stock_move_line_detailed_operation_tree_inherited" model="ir.ui.view">
            <field name="name">stock.move.line.operations.tree.inherit</field>
            <field name="model">stock.move.line</field>
            <field name="inherit_id" ref="stock.view_stock_move_line_detailed_operation_tree"/>
@@ -115,6 +129,7 @@
                         string="Sync SO"
                         type="object"
                         class="oe_highlight"
+                        attrs="{'invisible': [('picking_type_id', '!=', 2)]}"
                     />
                     <button name="action_rpb_form" attrs="{'invisible': [('state', 'not in', ['assigned','confirmed'])]}" string="Create RPB" type="object" class="oe_highlight" groups="base.group_user"/>
                </header>
@@ -127,10 +142,14 @@
                    </button>
                    
                </div>
+                <xpath expr="//field[@name='priority']" position="replace">
+                   <field name="set_priority" widget="priority"/>
+                </xpath>
                <field name="state" position="replace">
                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,assigned,rpb,deliverey,done" />
                </field>
                <xpath expr="//field[@name='origin']" position="after">
+                   <field name="source_document_accurate" attrs="{'invisible': [('source_document_accurate', '=', False)]}"/>
                    <field name="address_customer" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
                    <field name="is_invoice" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>
                    <field name="vehicle_id" attrs="{'invisible': [('picking_type_id', '!=', 2)]}"/>

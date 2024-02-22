@@ -10,20 +10,20 @@
                 </header>
                <sheet>
                    <group>
-                   <field name="product_id" required="1"/>
-                   <field name="name" required="1"/>
-                   <field name="stock_picking_id"/>
-                   <field name="source_document_id"/>
-                   <field name="date_scheduled"/>
-                   <field name="deadline"/>
-                   <field name="demand"/>
-                   <field name="reserved"/>
-                   <field name="done"/>
-                   <field name="uom"/>
-                   <field name="vehicle_id" required="1"/>
-                   <field name="driver_id" required="1"/>
-                   <field name="picking_type_id" required="1"/>
-                   <field name="move_id" readonly="1"/>
+                   <field name="product_id" required="1" readonly="1"/>
+                   <field name="name" required="1" readonly="1"/>
+                   <field name="stock_picking_id" readonly="1"/>
+                   <field name="source_document_id" readonly="1"/>
+                   <field name="date_scheduled" readonly="1"/>
+                   <field name="deadline" readonly="1"/>
+                   <field name="demand" readonly="1"/>
+                   <field name="reserved" readonly="1"/>
+                   <field name="done" readonly="1"/>
+                   <field name="uom" readonly="1"/>
+                   <field name="vehicle_id" required="1" readonly="1"/>
+                   <field name="driver_id" required="1" readonly="1"/>
+                   <field name="picking_type_id" required="1" readonly="1"/>
+                   <field name="move_id" readonly="1" />
                    </group>
 
                </sheet>
@@ -36,15 +36,49 @@
         <field name="model">rpb.rpb.view</field>
         <field name="arch" type="xml">
             <tree>
+                <field name="name" optional="hide"/>
+                <field name="product_id" optional="hide"/>
+                <field name="source_document_id" optional="hide"/>
+                <field name="date_scheduled" optional="hide"/>
+                <field name="demand" optional="hide"/>
+                <field name="driver_id" optional="hide"/>
+                <field name="vehicle_id" optional="hide" />
+                <field name="uom" optional="hide"/>
+                <field name="state_rpb" widget="badge" decoration-success="state_rpb == 'already_sent'" decoration-info="state_rpb == 'being_delivered'" on_change="1" modifiers="{&quot;readonly&quot;: true}"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_rpb_search" model="ir.ui.view">
+        <field name="name">rpb.rpb.view.search</field>
+        <field name="model">rpb.rpb.view</field>
+        <field name="arch" type="xml">
+            <search string="SO">
                 <field name="name"/>
-                <field name="product_id"/>
                 <field name="source_document_id"/>
-                <field name="date_scheduled"/>
-                <field name="done"/>
-                <field name="driver_id" />
-                <field name="vehicle_id" />
-                <field name="uom"/>
-                <field name="state_rpb"/>
+                <field name="product_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="rpb_tag_form" model="ir.ui.view">
+        <field name="name">rpb.tag.form</field>
+        <field name="model">rpb.tag</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="name"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+     <record id="rpb_tag_tree" model="ir.ui.view">
+        <field name="name">rpb.tag.tree</field>
+        <field name="model">rpb.tag</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
             </tree>
         </field>
     </record>
@@ -69,6 +103,14 @@
         <field name="binding_model_id" ref="sales_custom.model_rpb_rpb_view"/>
     </record>
 
+    <record id="rpb_tag_view_action" model="ir.actions.act_window">
+        <field name="name">RPB</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">rpb.tag</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="rpb_tag_tree"/>
+    </record>
+
     <record id="ir_actions_server_custom_rpb_progress_failed_to_send" model="ir.actions.server">
         <field name="name">Pending</field>
         <field name="type">ir.actions.server</field>
@@ -82,6 +124,7 @@
     </record>
 
     <menuitem id="menu_rpb_view_list" name="REPORT RPB" parent="menu_rpb" action="rpb_rpb_view_action" sequence="3"/>
+    <menuitem id="menu_rpb_tag_list" name="TAG RPB" parent="menu_rpb" action="rpb_tag_view_action" sequence="3"/>
 
 
 </odoo>

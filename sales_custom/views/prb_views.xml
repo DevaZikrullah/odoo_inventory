@@ -20,13 +20,14 @@
                    <field name="picking_type_id" required="1" readonly="1"/>
                    <field name="total_volume_product" required="1"/>
                    <field name="state_rpb" invisible="1"/>
+                    <field name="tag" widget="many2many_tags"/>
                </group>
                     <notebook>
                         <page string="Lines">
                             <field name="rpb_line_ids">
                                 <tree editable="bottom">
+                                    <field name="accurate_number" readonly="1"/>
                                     <field name="product_id" readonly="1"/>
-                                    <!-- <field name="description"/> -->
                                     <field name="date_scheduled" readonly="1"/>
                                     <!-- <field name="deadline"/> -->
                                     <field name="demand"/>
@@ -37,21 +38,37 @@
                             </field>
                         </page>
                     </notebook>
+                    <div class="oe_chatter">
+                       <field name="message_follower_ids" modifiers="{}"/>
+                       <field name="message_ids" modifiers="{}"/>
+                   </div>
                </sheet>
            </form>
         </field>
     </record>
+    
     <record id="rpb_rpb_view_tree" model="ir.ui.view">
         <field name="name">rpb.rpb.view.tree</field>
         <field name="model">rpb.rpb</field>
         <field name="arch" type="xml">
             <tree>
-                    <field name="name"/>
-                   <field name="vehicle_id"/>
-                   <field name="driver_id"/>
-                   <field name="delivery_date"/>
-                   <field name="picking_type_id"/>
+                <field name="name" optional="hide"/>
+                <field name="vehicle_id" optional="hide"/>
+                <field name="driver_id" optional="hide"/>
+                <field name="delivery_date" optional="hide"/>
+                <field name="sale_id" widget="many2many_tags" optional="hide"/>
+                <field name="tag" widget="many2many_tags" optional="hide"/>                    
             </tree>
+        </field>
+    </record>
+
+    <record id="view_rpb_rpb_search" model="ir.ui.view">
+        <field name="name">rpb.rpb.search</field>
+        <field name="model">rpb.rpb</field>
+        <field name="arch" type="xml">
+            <field name="name"/>
+            <field name="sale_id"/>
+            <field name="tag"/>
         </field>
     </record>
 
@@ -66,6 +83,18 @@
         </field>
         <field name="binding_model_id" ref="sales_custom.model_rpb_rpb"/>
      </record>
+
+    <record id="ir_actions_server_custom_done" model="ir.actions.server">
+        <field name="name">Done</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_rpb_rpb"/>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.rpb_done()
+        </field>
+        <field name="binding_model_id" ref="sales_custom.model_rpb_rpb"/>
+    </record>
 
     <record id="rpb_rpb_action" model="ir.actions.act_window">
         <field name="name">RPB</field>
