@@ -24,14 +24,14 @@
                             <field name="rpb_line_id">
                                 <tree editable="bottom">
                                     <field name="product_id"/>
-                                    <field name="description"/>
+<!--                                    <field name="description"/>-->
                                     <field name="date_scheduled"/>
-                                    <field name="deadline"/>
+<!--                                    <field name="deadline"/>-->
                                     <field name="demand"/>
-                                    <field name="reserved"/>
+<!--                                    <field name="reserved"/>-->
                                     <field name="done"/>
                                     <field name="qty"/>
-                                    <field name="lack_qty"/>
+<!--                                    <field name="lack_qty"/>-->
                                 </tree>
                             </field>
                         </page>
@@ -45,7 +45,6 @@
                             </field>
                         </page>
                     </notebook>
-
                <footer>
                     <button
                         name="rpb_button"

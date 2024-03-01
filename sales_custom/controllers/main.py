@@ -788,6 +788,8 @@ class SaleOrderController(http.Controller):
             sale_order.action_confirm()
 
 
+
+
 class CustomReportController(http.Controller):
     @http.route('/custom_report_download/<int:record_id>/', type='http', auth="public")
     def custom_report_download(self, record_id, **kw):

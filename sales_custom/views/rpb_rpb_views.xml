@@ -83,6 +83,27 @@
         </field>
     </record>
 
+    <record id="stock_move_custom" model="ir.ui.view">
+        <field name="name">stock.move.rpb.tree</field>
+        <field name="model">stock.move</field>
+        <field name="inherit_id" ref="stock.view_move_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='location_id']" position="replace">
+                <xpath expr="//field[@name='product_uom_qty']" position="move"/>
+            </xpath>
+            <xpath expr="//field[@name='state']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='location_dest_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='product_uom_qty']" position="after">
+                <field name="origin"/>
+                <field name="cust"/>
+            </xpath>
+        </field>
+    </record>
+
     <record id="rpb_rpb_view_action" model="ir.actions.act_window">
         <field name="name">RPB</field>
         <field name="type">ir.actions.act_window</field>
@@ -111,6 +132,15 @@
         <field name="view_id" ref="rpb_tag_tree"/>
     </record>
 
+     <record id="stock_move_action" model="ir.actions.act_window">
+         <field name="name">Stock Move</field>
+         <field name="type">ir.actions.act_window</field>
+         <field name="res_model">stock.move</field>
+         <field name="view_mode">tree</field>
+         <field name="view_id" ref="stock_move_custom"/>
+         <field name="domain">['|',  ('picking_type_id', 'in', [9, 10]), ('sale_line_id', '!=', False)]</field>
+    </record>
+
     <record id="ir_actions_server_custom_rpb_progress_failed_to_send" model="ir.actions.server">
         <field name="name">Pending</field>
         <field name="type">ir.actions.server</field>
@@ -125,6 +155,7 @@
 
     <menuitem id="menu_rpb_view_list" name="REPORT RPB" parent="menu_rpb" action="rpb_rpb_view_action" sequence="3"/>
     <menuitem id="menu_rpb_tag_list" name="TAG RPB" parent="menu_rpb" action="rpb_tag_view_action" sequence="3"/>
+    <menuitem id="menu_stock" name="Stock Move" parent="menu_rpb" action="stock_move_action" sequence="3"/>
 
 
 </odoo>

@@ -118,6 +118,18 @@
            </field>
        </record>
 
+       <record id="ir_actions_server_custom_done" model="ir.actions.server">
+            <field name="name">Done</field>
+            <field name="type">ir.actions.server</field>
+            <field name="model_id" ref="model_sale_order"/>
+            <field name="state">code</field>
+            <field name="code">
+                if records:
+                    action = records.create_rpb()
+            </field>
+           <field name="binding_model_id" ref="sales_custom.model_sale_order"/>
+       </record>
+
        <record id="stock_inherited_form_view" model="ir.ui.view">
            <field name="name">stock.picking.view.form.inherit</field>
            <field name="model">stock.picking</field>
@@ -134,7 +146,7 @@
                     <button name="action_rpb_form" attrs="{'invisible': [('state', 'not in', ['assigned','confirmed'])]}" string="Create RPB" type="object" class="oe_highlight" groups="base.group_user"/>
                </header>
                <div class="oe_button_box" name="button_box">
-                   <button name="action_count" attrs="{'invisible': [('state', 'not in', ['assigned','confirmed'])]}"
+                   <button name="action_count"
                            type="object"
                            class="oe_stat_button"
                            icon="fa-pencil-square-o">

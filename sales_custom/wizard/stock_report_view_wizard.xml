@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="stock_report_wizard_form_view" model="ir.ui.view">
+        <field name="name">stock.report.wizard.form</field>
+        <field name="model">stock.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="form_string">
+                <group col="1">
+                    <b>Tanggal</b>
+                    <div>
+                        <group>
+                            <group>
+                                <field name="date_from" />
+                            </group>
+                            <group>
+                                <field name="date_to" />
+                            </group>
+                        </group>
+                    </div>
+                </group>
+                <footer>
+<!--                     <button-->
+<!--                        name="update_accurate_button"-->
+<!--                        string="Update Accurate SO"-->
+<!--                        type="object"-->
+<!--                        class="oe_highlight"-->
+<!--                        attrs="{'invisible': [('active_ids', '!=', 2)]}"-->
+<!--                    />-->
+<!--                    <button-->
+<!--                        name="update_accurate_button_po"-->
+<!--                        string="Pengambilan PO Accurate"-->
+<!--                        type="object"-->
+<!--                        class="oe_highlight"-->
+<!--                        attrs="{'invisible': [('active_ids', '!=', 1)]}"-->
+<!--                    />-->
+                    <button
+                        name="button_execute"
+                        string="Simpan"
+                        type="object"
+                        class="oe_highlight"
+                    />
+                    <button string="Cancel" class="btn btn-primary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stock_report_wizard" model="ir.actions.act_window">
+        <field name="name">Stock Report</field>
+        <field name="res_model">stock.report.wizard</field>
+        <field name="binding_view_types">form</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_stock_report" name="Laporan Stock" action="action_stock_report_wizard" parent="stock.menu_stock_config_settings" sequence="2"/>
+
+</odoo>

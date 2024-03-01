@@ -7,6 +7,7 @@
     'category': 'custom HIJ',
     'data': [
         'views/sale_quot_views.xml',
+        'views/sale_order.xml',
         'wizard/trans_date_view.xml',
         'views/fleet_views.xml',
         'wizard/delivered_view.xml',
@@ -15,12 +16,15 @@
         'views/product_template_views.xml',
         'views/prb_views.xml',
         'views/rpb_rpb_views.xml',
+        'views/temp_stock_view.xml',
         'reports/report_rpb.xml',
         'reports/rpb_format_report.xml',
         'reports/report_so.xml',
         'reports/so_format_report.xml',
         'wizard/mutation_views.xml',
         'wizard/update_stock.xml',
+        'wizard/stock_report_view_wizard.xml',
+
     ],
     'installable': True,
     'application': True,

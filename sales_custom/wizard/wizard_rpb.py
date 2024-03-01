@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api,_
 from odoo.exceptions import UserError
 import random
 import datetime
@@ -6,7 +6,7 @@ import datetime
 class wizardRpb(models.TransientModel):
     _name = 'wizard.rpb'
 
-    name = fields.Char(string="Name", compute='_compute_name')
+    name = fields.Char(string="Name", index=True, default=lambda self: _('New'),compute='_compute_name')
     stock_picking_id = fields.Many2many('stock.picking', compute='_compute_stock_picking')
     sale_id = fields.Many2many('sale.order', compute='_compute_sale_id')
     vehicle_id = fields.Many2one('fleet.vehicle')
@@ -78,19 +78,17 @@ class wizardRpb(models.TransientModel):
             self.total_volume_product = a
             self.state_available = 'available'
 
-
-
-
-
-    @api.depends('stock_picking_id')
+    @api.onchange('rpb_line_id')
     def _compute_name(self):
-        active_ids = self.env.context.get('active_ids', [])[0]
-        self.name = "RPB/WHOUT/" + str(active_ids) + ""
+        for record in self:
+            interval = self.env['count.wizard'].search([],order='id asc',limit=1)
+            date = datetime.datetime.now()
+            record.name = 'RPB.'+str(date.year).zfill(4)+'.'+str(date.month).zfill(2)+"."+str(interval.id_interval).zfill(5)
 
     @api.onchange('stock_picking_id')
     def _compute_stock_picking(self):
-        active_ids = self.env.context.get('active_ids', [])
-        stock_picking = self.env['stock.picking'].search([('id', 'in', active_ids)])
+        active_ids = self.env.context.get('id_active')
+        stock_picking = self.env['stock.picking'].search([('sale_id', 'in', active_ids)])
         list = []
         for i in stock_picking:
             data = {
@@ -101,8 +99,8 @@ class wizardRpb(models.TransientModel):
 
     @api.onchange('sale_id')
     def _compute_sale_id(self):
-        active_ids = self.env.context.get('active_ids', [])
-        stock_picking = self.env['stock.picking'].search([('id', 'in', active_ids)])
+        active_ids = self.env.context.get('id_active')
+        stock_picking = self.env['stock.picking'].search([('sale_id', 'in', active_ids)])
         list = []
         for i in stock_picking:
             data = {
@@ -113,7 +111,7 @@ class wizardRpb(models.TransientModel):
 
     # @api.onchange('picking_type_id')
     def domain_picking_type(self):
-        active_ids = self.env.context.get('active_ids', [])
+        active_ids = self.env.context.get('id_active')
         stock_picking = self.env['stock.picking'].search([('id', 'in', active_ids)])
         list = []
         for i in stock_picking:
@@ -131,8 +129,12 @@ class wizardRpb(models.TransientModel):
 
     @api.onchange('rpb_line_id')
     def domain_rpb_line(self):
-        active_ids = self.env.context.get('active_ids', [])
-        stock_move = self.env['stock.move'].search([('picking_id', 'in', active_ids)])
+        active_ids = self.env.context.get('id_active')
+        picking_ids = []
+        for record in active_ids:
+            picking_ids.append(self.env['stock.picking'].search([('sale_id', '=', record)]).id)
+
+        stock_move = self.env['stock.move'].search([('picking_id', 'in', picking_ids)])
         list = []
         for i in stock_move:
             if not any(item[2]['product_id'] == i.product_id.id for item in list):
@@ -168,7 +170,14 @@ class wizardRpb(models.TransientModel):
         # self.picking_type_id = int(stock_picking.picking_type_id)
 
     def rpb_button(self):
-        active_ids = self.env.context.get('active_ids', [])
+        active_id = self.env.context.get('id_active')
+        active_ids = []
+        for sale_id in active_id:
+            quotations = self.env['sale.order'].search([('id', '=', sale_id)])
+            quotations.action_confirm()
+            picking_id = self.env['stock.picking'].search([('sale_id', '=', sale_id)])
+            active_ids.append(picking_id.id)
+
         rpb = self.env['rpb.rpb'].search([])
         rpb_cek = self.env['stock.picking'].search([('id', 'in', active_ids)])
         rpb_line = self.env['rpb.line'].search([])
@@ -182,14 +191,16 @@ class wizardRpb(models.TransientModel):
             b += int(self.env['product.template'].search([('id', '=', i.product_id.product_tmpl_id.id)]).volume) * int(i.done)
         for save in stock_move:
             deadline = datetime.datetime.now()
-            scdule = save.picking_id.sale_id.date_order
+            scdule = datetime.datetime.now()
             str_date = scdule.strftime("%Y-%m-%d")
+
             if save.date_deadline:
                 deadline = save.date_deadline
             if save.date:
                 scdule = save.date
+
             list_rpb_view.append({
-                "name": ''+str(self.name)+'/'+str(self.id)+'',
+                "name": ''+str(self.name),
                 "stock_picking_id": int(save.picking_id),
                 "source_document_id": int(save.picking_id.sale_id),
                 "product_id": int(save.product_id),
@@ -204,7 +215,8 @@ class wizardRpb(models.TransientModel):
                 "vehicle_id": self.vehicle_id.id,
                 "driver_id": self.driver_id.id,
                 "picking_type_id": self.picking_type_id.id,
-                "state_rpb":'being_delivered'
+                "state_rpb":'being_delivered',
+                "origin":save.origin
             })
         rpb_list.create(list_rpb_view)
         jumlah_barang = self.rpb_line_id
@@ -251,7 +263,7 @@ class wizardRpb(models.TransientModel):
                 'state': 'rpb'
             })
         data = {
-            'name': ''+str(self.name)+'/'+str(self.id)+'',
+            'name': ''+str(self.name),
             'stock_picking_id': self.stock_picking_id,
             'sale_id': self.sale_id,
             'vehicle_id': self.vehicle_id.id,
@@ -261,7 +273,14 @@ class wizardRpb(models.TransientModel):
             'picking_type_id': self.picking_type_id.id,
             'rpb_line_ids': list
         }
+        interval = self.env['count.wizard'].search([], order='id asc', limit=1)
+        count = int(interval.id_interval) + 1
+        interval.write({
+            'id_interval': count
+        })
         rpb.create(data)
+
+
 
     def cancel_button(self):
         return {'type': 'ir.actions.act_window_close'}
@@ -287,6 +306,11 @@ class wizardRpbLine(models.TransientModel):
         for record in self:
             record.lack_qty = record.demand - record.done
 
+    @api.depends('demand', 'done')
+    def _compute_date(self):
+        for record in self:
+            record.date_scheduled = record.rpb_id.delivery_date
+
 
 class employeeOrker(models.TransientModel):
     _name = 'employee.wizard'
@@ -294,3 +318,8 @@ class employeeOrker(models.TransientModel):
     employee_id = fields.Many2one('hr.employee')
     worked_hours = fields.Float(string="Work Hours", store="true")
     rpb_id = fields.Many2one('wizard.rpb')
+
+class Count(models.TransientModel):
+    _name = 'count.wizard'
+
+    id_interval = fields.Integer()
